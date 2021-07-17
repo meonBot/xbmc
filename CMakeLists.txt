@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.4)
+if(WIN32)
+  # Version 3.15 is required to use "PREPEND" for dependencies
+  cmake_minimum_required(VERSION 3.15)
+endif()
 project(kodi LANGUAGES CXX C ASM)
 
 if(POLICY CMP0069)
@@ -127,10 +131,11 @@ set(required_deps ASS
                   FreeType
                   FriBidi
                   fstrcmp
+                  HarfBuzz
                   Iconv
                   LibDvd
                   Lzo2
-                  OpenSSL>=1.0.2
+                  OpenSSL>=1.1.0
                   PCRE
                   RapidJSON
                   Spdlog
@@ -160,6 +165,7 @@ set(optional_deps Alsa
                   MDNS
                   MicroHttpd
                   NFS
+                  Pipewire
                   Plist
                   PulseAudio
                   Python
@@ -499,7 +505,14 @@ if(VERBOSE)
   message(STATUS "CMAKE_C_FLAGS         : ${CMAKE_C_FLAGS}")
   message(STATUS "CMAKE_CXX_FLAGS       : ${CMAKE_CXX_FLAGS}")
   message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
-  message(STATUS "LTO_OPTIMIZATION:     : ${CMAKE_INTERPROCEDURAL_OPTIMIZATION}")
+  message(STATUS "LTO_OPTIMIZATION      : ${CMAKE_INTERPROCEDURAL_OPTIMIZATION}")
+  if(CMAKE_INTERPROCEDURAL_OPTIMIZATION)
+    message(STATUS "CMAKE_CXX_COMPILE_OPTIONS_IPO: ${CMAKE_CXX_COMPILE_OPTIONS_IPO}")
+    message(STATUS "CMAKE_C_COMPILE_OPTIONS_IPO  : ${CMAKE_C_COMPILE_OPTIONS_IPO}")
+    message(STATUS "CMAKE_AR                     : ${CMAKE_AR}")
+    message(STATUS "CMAKE_NM                     : ${CMAKE_NM}")
+    message(STATUS "CMAKE_LINKER                 : ${CMAKE_LINKER}")
+  endif()
   message(STATUS "#---------------------------------------------#")
   message(STATUS "bindir     : ${bindir}")
   message(STATUS "includedir : ${includedir}")

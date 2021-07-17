@@ -24,8 +24,6 @@
 #define CONTROL_SETTINGS_CANCEL_BUTTON 29
 #define CONTROL_SETTINGS_CUSTOM_BUTTON 30
 
-#define CONTROL_SETTINGS_CUSTOM 100
-
 #define CONTROL_SETTINGS_START_BUTTONS -100
 #define CONTROL_SETTINGS_START_CONTROL -80
 
@@ -92,7 +90,7 @@ protected:
   virtual int GetSettingLevel() const { return 0; }
   virtual std::shared_ptr<CSettingSection> GetSection() = 0;
   virtual std::shared_ptr<CSetting> GetSetting(const std::string& settingId) = 0;
-  virtual unsigned int GetDelayMs() const { return 1500; }
+  virtual std::chrono::milliseconds GetDelayMs() const { return std::chrono::milliseconds(1500); }
   virtual std::string GetLocalizedString(uint32_t labelId) const;
 
   virtual bool OnOkay()

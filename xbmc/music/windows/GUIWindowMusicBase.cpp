@@ -6,19 +6,21 @@
  *  See LICENSES/README.md for more information.
  */
 
-#include "threads/SystemClock.h"
-#include "GUIUserMessages.h"
 #include "GUIWindowMusicBase.h"
-#include "dialogs/GUIDialogMediaSource.h"
+
+#include "Application.h"
+#include "GUIUserMessages.h"
+#include "PlayListPlayer.h"
+#include "ServiceBroker.h"
+#include "Util.h"
 #include "dialogs/GUIDialogFileBrowser.h"
+#include "dialogs/GUIDialogMediaSource.h"
+#include "music/MusicLibraryQueue.h"
 #include "music/dialogs/GUIDialogInfoProviderSettings.h"
 #include "music/dialogs/GUIDialogMusicInfo.h"
 #include "playlists/PlayListFactory.h"
-#include "Util.h"
 #include "playlists/PlayListM3U.h"
-#include "Application.h"
-#include "PlayListPlayer.h"
-#include "ServiceBroker.h"
+#include "threads/SystemClock.h"
 #ifdef HAS_CDDA_RIPPER
 #include "cdrip/CDDARipper.h"
 #endif
@@ -89,7 +91,7 @@ CGUIWindowMusicBase::~CGUIWindowMusicBase () = default;
 
 bool CGUIWindowMusicBase::OnBack(int actionID)
 {
-  if (!g_application.IsMusicScanning())
+  if (!CMusicLibraryQueue::GetInstance().IsScanningLibrary())
   {
     CUtil::RemoveTempFiles();
   }
@@ -267,9 +269,19 @@ bool CGUIWindowMusicBase::OnAction(const CAction &action)
 void CGUIWindowMusicBase::OnItemInfoAll(const std::string& strPath, bool refresh)
 {
   if (StringUtils::EqualsNoCase(m_vecItems->GetContent(), "albums"))
-    g_application.StartMusicAlbumScan(strPath, refresh);
+  {
+    if (CMusicLibraryQueue::GetInstance().IsScanningLibrary())
+      return;
+
+    CMusicLibraryQueue::GetInstance().StartAlbumScan(strPath, refresh);
+  }
   else if (StringUtils::EqualsNoCase(m_vecItems->GetContent(), "artists"))
-    g_application.StartMusicArtistScan(strPath, refresh);
+  {
+    if (CMusicLibraryQueue::GetInstance().IsScanningLibrary())
+      return;
+
+    CMusicLibraryQueue::GetInstance().StartArtistScan(strPath, refresh);
+  }
 }
 
 void CGUIWindowMusicBase::OnItemInfo(int iItem)
@@ -321,7 +333,7 @@ void CGUIWindowMusicBase::RefreshContent(const std::string& strContent)
 /// \brief Retrieve tag information for \e m_vecItems
 void CGUIWindowMusicBase::RetrieveMusicInfo()
 {
-  unsigned int startTick = XbmcThreads::SystemClockMillis();
+  auto start = std::chrono::steady_clock::now();
 
   OnRetrieveMusicInfo(*m_vecItems);
 
@@ -357,8 +369,10 @@ void CGUIWindowMusicBase::RetrieveMusicInfo()
   }
   m_vecItems->Append(itemsForAdd);
 
-  CLog::Log(LOGDEBUG, "RetrieveMusicInfo() took %u msec",
-            XbmcThreads::SystemClockMillis() - startTick);
+  auto end = std::chrono::steady_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+  CLog::Log(LOGDEBUG, "RetrieveMusicInfo() took {} ms", duration.count());
 }
 
 /// \brief Add selected list/thumb control item to playlist and start playing
@@ -382,7 +396,7 @@ void CGUIWindowMusicBase::OnQueueItem(int iItem, bool first)
 
   if (item->IsRAR() || item->IsZIP())
     return;
-  
+
   // Check for the partymode playlist item, do nothing when "PartyMode.xsp" not exist
   if (item->IsSmartPlayList())
   {
@@ -398,7 +412,8 @@ void CGUIWindowMusicBase::OnQueueItem(int iItem, bool first)
   if (!item->CanQueue())
     item->SetCanQueue(true);
 
-  CLog::Log(LOGDEBUG, "Adding file %s%s to music playlist", item->GetPath().c_str(), item->m_bIsFolder ? " (folder) " : "");
+  CLog::Log(LOGDEBUG, "Adding file {}{} to music playlist", item->GetPath(),
+            item->m_bIsFolder ? " (folder) " : "");
   CFileItemList queuedItems;
   AddItemToPlayList(item, queuedItems);
 
@@ -525,7 +540,7 @@ void CGUIWindowMusicBase::UpdateButtons()
                               !(m_vecItems->IsVirtualDirectoryRoot() ||
                                 m_vecItems->IsMusicDb()));
 
-  if (g_application.IsMusicScanning())
+  if (CMusicLibraryQueue::GetInstance().IsScanningLibrary())
     SET_CONTROL_LABEL(CONTROL_BTNSCAN, 14056); // Stop Scan
   else
     SET_CONTROL_LABEL(CONTROL_BTNSCAN, 102); // Scan
@@ -543,7 +558,7 @@ void CGUIWindowMusicBase::GetContextButtons(int itemNumber, CContextButtons &but
   {
     const std::shared_ptr<CProfileManager> profileManager = CServiceBroker::GetSettingsComponent()->GetProfileManager();
 
-    // Check for the partymode playlist item. 
+    // Check for the partymode playlist item.
     // When "PartyMode.xsp" not exist, only context menu button is edit
     if (item->IsSmartPlayList() &&
         (item->GetPath() == profileManager->GetUserDataItem("PartyMode.xsp")) &&
@@ -694,7 +709,7 @@ bool CGUIWindowMusicBase::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
 
   case CONTEXT_BUTTON_SCAN:
     // Check if scanning already and inform user
-    if (g_application.IsMusicScanning())
+    if (CMusicLibraryQueue::GetInstance().IsScanningLibrary())
       HELPERS::ShowOKDialogText(CVariant{ 189 }, CVariant{ 14057 });
     else
       OnScan(itemNumber, true);
@@ -901,15 +916,16 @@ void CGUIWindowMusicBase::OnRetrieveMusicInfo(CFileItemList& items)
   bool bShowProgress = !CServiceBroker::GetGUI()->GetWindowManager().HasModalDialog(true);
   bool bProgressVisible = false;
 
-  unsigned int tick=XbmcThreads::SystemClockMillis();
+  auto start = std::chrono::steady_clock::now();
 
   while (m_musicInfoLoader.IsLoading())
   {
     if (bShowProgress)
     { // Do we have to init a progress dialog?
-      unsigned int elapsed=XbmcThreads::SystemClockMillis()-tick;
+      auto end = std::chrono::steady_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-      if (!bProgressVisible && elapsed>1500 && m_dlgProgress)
+      if (!bProgressVisible && duration.count() > 1500 && m_dlgProgress)
       { // tag loading takes more then 1.5 secs, show a progress dialog
         CURL url(items.GetPath());
         m_dlgProgress->SetHeading(CVariant{189});
@@ -941,8 +957,7 @@ bool CGUIWindowMusicBase::GetDirectory(const std::string &strDirectory, CFileIte
   {
     // We want to expand disc images when browsing in file view but not on library, smartplaylist
     // or node menu music windows
-    if (!items.GetPath().empty() && 
-        !StringUtils::StartsWithNoCase(items.GetPath(), "musicdb://") &&
+    if (!items.GetPath().empty() && !StringUtils::StartsWithNoCase(items.GetPath(), "musicdb://") &&
         !StringUtils::StartsWithNoCase(items.GetPath(), "special://") &&
         !StringUtils::StartsWithNoCase(items.GetPath(), "library://"))
       CDirectory::FilterFileDirectories(items, ".iso", true);
@@ -1067,9 +1082,9 @@ bool CGUIWindowMusicBase::OnSelect(int iItem)
         // ask the user if they want to play or resume
         CContextButtons choices;
         choices.Add(MUSIC_SELECT_ACTION_PLAY, 208); // 208 = Play
-        choices.Add(MUSIC_SELECT_ACTION_RESUME, StringUtils::Format(g_localizeStrings.Get(12022), // 12022 = Resume from ...
-          (*itemIt)->GetMusicInfoTag()->GetTitle().c_str()
-        ));
+        choices.Add(MUSIC_SELECT_ACTION_RESUME,
+                    StringUtils::Format(g_localizeStrings.Get(12022), // 12022 = Resume from ...
+                                        (*itemIt)->GetMusicInfoTag()->GetTitle()));
 
         auto choice = CGUIDialogContextMenu::Show(choices);
         if (choice == MUSIC_SELECT_ACTION_RESUME)
@@ -1093,7 +1108,12 @@ void CGUIWindowMusicBase::OnInitWindow()
   // and accomodate any changes to the way some tags are processed
   if (m_musicdatabase.GetMusicNeedsTagScan() != 0)
   {
-    if (CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetLibraryInfoProvider().GetLibraryBool(LIBRARY_HAS_MUSIC) && !g_application.IsMusicScanning())
+    if (CServiceBroker::GetGUI()
+            ->GetInfoManager()
+            .GetInfoProviders()
+            .GetLibraryInfoProvider()
+            .GetLibraryBool(LIBRARY_HAS_MUSIC) &&
+        !CMusicLibraryQueue::GetInstance().IsScanningLibrary())
     {
       // rescan of music library required
       if (CGUIDialogYesNo::ShowAndGetInput(CVariant{799}, CVariant{38060}))
@@ -1104,7 +1124,9 @@ void CGUIWindowMusicBase::OnInitWindow()
         if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_MUSICLIBRARY_DOWNLOADINFO))
           if (CGUIDialogYesNo::ShowAndGetInput(CVariant{799}, CVariant{38061}))
             flags |= CMusicInfoScanner::SCAN_ONLINE;
-        g_application.StartMusicScan("", true, flags);
+
+        CMusicLibraryQueue::GetInstance().ScanLibrary("", flags, true);
+
         m_musicdatabase.SetMusicTagScanVersion(); // once is enough (user may interrupt, but that's up to them)
       }
     }
@@ -1148,9 +1170,9 @@ void CGUIWindowMusicBase::OnScan(int iItem, bool bPromptRescan /*= false*/)
 
 void CGUIWindowMusicBase::DoScan(const std::string &strPath, bool bRescan /*= false*/)
 {
-  if (g_application.IsMusicScanning())
+  if (CMusicLibraryQueue::GetInstance().IsScanningLibrary())
   {
-    g_application.StopMusicScan();
+    CMusicLibraryQueue::GetInstance().StopLibraryScanning();
     return;
   }
 
@@ -1161,7 +1183,9 @@ void CGUIWindowMusicBase::DoScan(const std::string &strPath, bool bRescan /*= fa
     flags = CMusicInfoScanner::SCAN_RESCAN;
   if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_MUSICLIBRARY_DOWNLOADINFO))
     flags |= CMusicInfoScanner::SCAN_ONLINE;
-  g_application.StartMusicScan(strPath, true, flags);
+
+  CMusicLibraryQueue::GetInstance().ScanLibrary(strPath, flags, true);
+
   SET_CONTROL_FOCUS(iControl, 0);
   UpdateButtons();
 }
@@ -1218,7 +1242,7 @@ void CGUIWindowMusicBase::OnAssignContent(const std::string& oldName, const CMed
       CGUIDialogInfoProviderSettings::Show();
   }
   if (rep == DialogResponse::YES)
-    g_application.StartMusicScan(source.strPath, true);
-
+    CMusicLibraryQueue::GetInstance().ScanLibrary(source.strPath,
+                                                  MUSIC_INFO::CMusicInfoScanner::SCAN_NORMAL, true);
 }
 

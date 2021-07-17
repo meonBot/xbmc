@@ -21,6 +21,7 @@
 #include <wrl/client.h>
 
 struct RESOLUTION_INFO;
+struct DEBUG_INFO_RENDER;
 
 namespace DX
 {
@@ -109,6 +110,9 @@ namespace DX
 #endif // TARGET_WINDOWS_STORE
     bool IsNV12SharedTexturesSupported() const { return m_NV12SharedTexturesSupport; }
 
+    // Gets debug info from swapchain
+    DEBUG_INFO_RENDER GetDebugInfo() const;
+
   private:
     class CBackBuffer : public CD3DTexture
     {
@@ -119,6 +123,7 @@ namespace DX
     };
 
     HRESULT CreateSwapChain(DXGI_SWAP_CHAIN_DESC1 &desc, DXGI_SWAP_CHAIN_FULLSCREEN_DESC &fsDesc, IDXGISwapChain1 **ppSwapChain) const;
+    void DestroySwapChain();
     void CreateDeviceIndependentResources();
     void CreateDeviceResources();
     void CreateWindowSizeDependentResources();

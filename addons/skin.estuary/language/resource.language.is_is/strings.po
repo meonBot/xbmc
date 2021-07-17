@@ -1,7 +1,7 @@
 # Kodi Media Center language file
 # Addon Name: Estuary
 # Addon id: skin.estuary
-# Addon Provider: phil65, Ichabod Fletchman
+# Addon Provider: Team Kodi
 msgid ""
 msgstr ""
 "Project-Id-Version: KODI Main\n"
@@ -10,11 +10,23 @@ msgstr ""
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Kodi Translation Team\n"
 "Language-Team: Icelandic (Iceland) (http://www.transifex.com/projects/p/kodi-main/language/is_IS/)\n"
+"Language: is_IS\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: is_IS\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);\n"
+
+msgctxt "Addon Summary"
+msgid "Estuary skin by phil65. (Kodi's default skin)"
+msgstr "Estuary-skinnið eftir phil65. (sjálfgefið útlit Kodi)"
+
+msgctxt "Addon Description"
+msgid "Estuary is the default skin for Kodi 17.0 and above. It attempts to be easy for first time Kodi users to understand and use."
+msgstr "Estuary er sjálfgefið skinn fyrir Kodi 17.0 og nýrri. Með því á að vera auðvelt fyrir fyrsta-skiptis Kodi-notendur að skilja og nota viðmótið."
+
+msgctxt "Addon Disclaimer"
+msgid "Estuary is the default skin for Kodi, removing it may cause issues"
+msgstr "Estuary er sjálfgefið skinn fyrir Kodi, ef það er fjarlægt gætu komið upp ýmis vandamál"
 
 msgctxt "#31000"
 msgid "Now playing"
@@ -76,10 +88,12 @@ msgctxt "#31014"
 msgid "Unplayed albums"
 msgstr "Óspilaðar hljómplötur"
 
+#. home screen recordings widget: recent tv / radio recordings
 msgctxt "#31015"
 msgid "Recent recordings"
 msgstr "Nýlegar upptökur"
 
+#. home screen channel widget: recently played tv channels. (please note that in some non-english languages #31018 and #31016 might not be equal)
 msgctxt "#31016"
 msgid "Recently played channels"
 msgstr "Nýlega spilaðar rásir"
@@ -88,6 +102,7 @@ msgctxt "#31017"
 msgid "Rated"
 msgstr "Einkunn"
 
+#. home screen channel widget: recently played radio channels. (please note that in some non-english languages #31018 and #31016 might not be equal)
 msgctxt "#31018"
 msgid "Recently played channels"
 msgstr "Nýlega spilaðar rásir"
@@ -110,7 +125,7 @@ msgstr "Raða eftir"
 
 msgctxt "#31023"
 msgid "Viewtype"
-msgstr "GerðÁsýndar"
+msgstr "Gerð útlits"
 
 msgctxt "#31024"
 msgid "Choose rating to display for media items"
@@ -118,7 +133,7 @@ msgstr "Veldu einkunn til að birta með margmiðlunaratriðum"
 
 msgctxt "#31025"
 msgid "No favourites found. You can add any item from media views to this list by using the context menu."
-msgstr "Engin eftirlæti fundust. Þú getur bætt við hvaða atriði sem er úr margmiðlunarásýndum með því að nota samhengisvalmyndina."
+msgstr "Engin eftirlæti fundust. Þú getur bætt við hvaða atriði sem er úr ásýndum margmiðlunar með því að nota samhengisvalmyndina."
 
 msgctxt "#31026"
 msgid "Timeshift"
@@ -134,7 +149,7 @@ msgstr "Birta aðdáendamyndir"
 
 msgctxt "#31029"
 msgid "Last logged in"
-msgstr "Síðast skráður inn"
+msgstr "Síðasta innskráning"
 
 msgctxt "#31030"
 msgid "System memory usage"
@@ -166,7 +181,7 @@ msgstr "atriði"
 
 msgctxt "#31037"
 msgid "Selected track"
-msgstr "Valin rás"
+msgstr "Valið lag"
 
 msgctxt "#31038"
 msgid "Rewind"
@@ -216,6 +231,10 @@ msgctxt "#31054"
 msgid "Press [B]Left[/B] to step back, or [B]Right[/B] to step forward"
 msgstr "Ýttu á [B]Vinstri[/B] til að hoppa til baka, eða [B]Hægri[/B] til að hoppa áfram"
 
+msgctxt "#31055"
+msgid "Press [B]Right[/B] to frame advance"
+msgstr "Ýttu á [B]Hægri[/B] til að fara áfram um ramma"
+
 msgctxt "#31056"
 msgid "Go to playlist"
 msgstr "Fara í spilunarlista"
@@ -254,7 +273,7 @@ msgstr "Myndskeiðalistar"
 
 msgctxt "#31066"
 msgid "Music playlist"
-msgstr "Lagalistar"
+msgstr "Spilunarlistar fyrir tónlist"
 
 msgctxt "#31067"
 msgid "Event log"
@@ -274,7 +293,7 @@ msgstr "eftir"
 
 msgctxt "#31072"
 msgid "Power Options"
-msgstr "Valkostir orkustýringar"
+msgstr "Aflstýring"
 
 msgctxt "#31073"
 msgid "Total length"
@@ -294,7 +313,7 @@ msgstr "Hlutverkaskrá ekki tiltæk"
 
 msgctxt "#31080"
 msgid "Ends at"
-msgstr "Endar á"
+msgstr "Lýkur"
 
 msgctxt "#31082"
 msgid "Lyrics add-on"
@@ -336,18 +355,22 @@ msgctxt "#31098"
 msgid "Select your Kodi user profile[CR]to login and continue"
 msgstr "Veldu Kodi notanda[CR]til að skrá þig inn og halda áfram"
 
+#. viewtype name
 msgctxt "#31099"
 msgid "IconWall"
 msgstr "Táknmyndaveggur"
 
+#. viewtype name
 msgctxt "#31100"
 msgid "Shift"
 msgstr "Shift"
 
+#. viewtype name
 msgctxt "#31101"
 msgid "InfoWall"
 msgstr "Upplýsingaveggur"
 
+#. viewtype name
 msgctxt "#31102"
 msgid "Wall"
 msgstr "Skjáveggur"
@@ -368,13 +391,14 @@ msgctxt "#31106"
 msgid "Teletext"
 msgstr "Textavarp"
 
+#. viewtype name
 msgctxt "#31107"
 msgid "WideList"
 msgstr "Breiðlisti"
 
 msgctxt "#31110"
 msgid "Enter files section"
-msgstr "Fara í skráa-hlutann"
+msgstr "Fara í skráahlutann"
 
 msgctxt "#31111"
 msgid "View your personal pictures or download one of the many image add-ons from the official repository."
@@ -391,6 +415,10 @@ msgstr "Leita í safni á tölvu"
 msgctxt "#31114"
 msgid "Search YouTube"
 msgstr "Leita á YouTube"
+
+msgctxt "#31115"
+msgid "Toggle subtitle"
+msgstr "Víxla skjátexta af/á"
 
 msgctxt "#31116"
 msgid "Remove this main menu item"
@@ -422,7 +450,7 @@ msgstr "Óskoðaðir sjónvarpsþættir"
 
 msgctxt "#31123"
 msgid "Same director"
-msgstr "Sami Lleikstjóri"
+msgstr "Sami leikstjóri"
 
 msgctxt "#31125"
 msgid "Press up for actor info"
@@ -464,6 +492,10 @@ msgctxt "#31134"
 msgid "Remaining"
 msgstr "Eftir"
 
+msgctxt "#31135"
+msgid "Binary"
+msgstr "Tvíundakerfis"
+
 msgctxt "#31136"
 msgid "Click here to see latest changes..."
 msgstr "Smelltu hér til að sjá síðustu breytingar..."
@@ -498,7 +530,7 @@ msgstr "Þú ert ekki búinn að setja upp PVR-upptökutæki. Til að geta nota�
 
 msgctxt "#31144"
 msgid "Enter add-on browser"
-msgstr "Fara í viðbóta-skoðara"
+msgstr "Fara í viðbótaskoðara"
 
 msgctxt "#31145"
 msgid "Search add-ons"
@@ -519,6 +551,10 @@ msgstr "Flokkar"
 msgctxt "#31149"
 msgid "Select genre fanart pack"
 msgstr "Veldu pakka með aðdáendamyndum fyrir flokkun"
+
+msgctxt "#31150"
+msgid "Origin"
+msgstr "Uppruni"
 
 msgctxt "#31151"
 msgid "Unwatched music videos"
@@ -572,18 +608,32 @@ msgctxt "#31163"
 msgid "Show Fanart background"
 msgstr "Birta aðdáendamynd sem bakgrunn"
 
+#. Choose profile identifier
 msgctxt "#31164"
 msgid "Choose kind of profile identification"
 msgstr "Veldu gerð notandaauðkenningar"
 
+#. Label for the kind of profile identification
 msgctxt "#31165"
 msgid "Profile name"
 msgstr "Nafn notanda"
 
+#. Label for the kind of profile identification
 msgctxt "#31166"
 msgid "Profile avatar"
 msgstr "Notandatáknmynd"
 
+#. Label of a setting
 msgctxt "#31167"
 msgid "Animate background"
 msgstr "Lifandi bakgrunnur"
+
+#. Label of a setting
+msgctxt "#31168"
+msgid "Show posters instead of thumbs for musicvideos"
+msgstr "Birta veggspjöld frekar en smámyndir fyrir tónlistarmyndbönd"
+
+#. Description label for skin settings area
+msgctxt "#31169"
+msgid "Artwork related settings."
+msgstr "Stillingar tengdar myndefni."

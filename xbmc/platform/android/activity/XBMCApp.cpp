@@ -74,6 +74,7 @@
 #include "filesystem/SpecialProtocol.h"
 #include "filesystem/VideoDatabaseFile.h"
 #include "guilib/GUIComponent.h"
+#include "guilib/GUIWindowManager.h"
 #include "guilib/guiinfo/GUIInfoLabels.h"
 #include "input/Key.h"
 #include "input/mouse/MouseStat.h"
@@ -106,6 +107,7 @@
 using namespace KODI::MESSAGING;
 using namespace ANNOUNCEMENT;
 using namespace jni;
+using namespace std::chrono_literals;
 
 template<class T, void(T::*fn)()>
 void* thread_run(void* obj)
@@ -283,7 +285,13 @@ void CXBMCApp::onPause()
   }
 
   if (m_hasReqVisible)
-    g_application.SwitchToFullScreen(true);
+  {
+    CGUIComponent* gui = CServiceBroker::GetGUI();
+    if (gui)
+    {
+      gui->GetWindowManager().SwitchToFullScreen(true);
+    }
+  }
 
   EnableWakeLock(false);
   m_hasReqVisible = false;
@@ -465,7 +473,7 @@ void CXBMCApp::RequestVisibleBehind(bool requested)
     return;
 
   m_hasReqVisible = requestVisibleBehind(requested);
-  CLog::Log(LOGDEBUG, "Visible Behind request: %s", m_hasReqVisible ? "true" : "false");
+  CLog::Log(LOGDEBUG, "Visible Behind request: {}", m_hasReqVisible ? "true" : "false");
 }
 
 bool CXBMCApp::IsHeadsetPlugged()
@@ -546,10 +554,10 @@ void CXBMCApp::SetRefreshRateCallback(CVariant* rateVariant)
   if (window)
   {
     CJNIWindowManagerLayoutParams params = window.getAttributes();
-    if (fabs(params.getpreferredRefreshRate() - rate) > 0.001)
+    if (fabs(params.getpreferredRefreshRate() - rate) > 0.001f)
     {
       params.setpreferredRefreshRate(rate);
-      if (params.getpreferredRefreshRate() > 0.0)
+      if (params.getpreferredRefreshRate() > 0.0f)
       {
         window.setAttributes(params);
         return;
@@ -582,14 +590,14 @@ void CXBMCApp::SetDisplayModeCallback(CVariant* variant)
 
 void CXBMCApp::SetRefreshRate(float rate)
 {
-  if (rate < 1.0)
+  if (rate < 1.0f)
     return;
 
   CJNIWindow window = getWindow();
   if (window)
   {
     CJNIWindowManagerLayoutParams params = window.getAttributes();
-    if (fabs(params.getpreferredRefreshRate() - rate) <= 0.001)
+    if (fabs(params.getpreferredRefreshRate() - rate) <= 0.001f)
       return;
   }
 
@@ -600,7 +608,7 @@ void CXBMCApp::SetRefreshRate(float rate)
   runNativeOnUiThread(SetRefreshRateCallback, variant);
   if (g_application.IsInitialized())
   {
-    m_displayChangeEvent.WaitMSec(5000);
+    m_displayChangeEvent.Wait(5000ms);
     if (m_hdmiSource && g_application.GetAppPlayer().IsPlaying())
       dynamic_cast<CWinSystemAndroid*>(CServiceBroker::GetWinSystem())->InitiateModeChange();
   }
@@ -628,7 +636,7 @@ void CXBMCApp::SetDisplayMode(int mode, float rate)
   runNativeOnUiThread(SetDisplayModeCallback, variant);
   if (g_application.IsInitialized())
   {
-    m_displayChangeEvent.WaitMSec(5000);
+    m_displayChangeEvent.Wait(5000ms);
     if (m_hdmiSource && g_application.GetAppPlayer().IsPlaying())
       dynamic_cast<CWinSystemAndroid*>(CServiceBroker::GetWinSystem())->InitiateModeChange();
   }
@@ -751,7 +759,7 @@ void CXBMCApp::UpdateSessionState()
 
 void CXBMCApp::OnPlayBackStarted()
 {
-  CLog::Log(LOGDEBUG, "%s", __PRETTY_FUNCTION__);
+  CLog::Log(LOGDEBUG, "{}", __PRETTY_FUNCTION__);
 
   m_playback_state = PLAYBACK_STATE_PLAYING;
   if (g_application.GetAppPlayer().HasVideo())
@@ -775,7 +783,7 @@ void CXBMCApp::OnPlayBackStarted()
 
 void CXBMCApp::OnPlayBackPaused()
 {
-  CLog::Log(LOGDEBUG, "%s", __PRETTY_FUNCTION__);
+  CLog::Log(LOGDEBUG, "{}", __PRETTY_FUNCTION__);
 
   m_playback_state &= ~PLAYBACK_STATE_PLAYING;
   UpdateSessionState();
@@ -786,7 +794,7 @@ void CXBMCApp::OnPlayBackPaused()
 
 void CXBMCApp::OnPlayBackStopped()
 {
-  CLog::Log(LOGDEBUG, "%s", __PRETTY_FUNCTION__);
+  CLog::Log(LOGDEBUG, "{}", __PRETTY_FUNCTION__);
 
   m_playback_state = PLAYBACK_STATE_STOPPED;
   UpdateSessionState();
@@ -872,7 +880,7 @@ bool CXBMCApp::StartActivity(const std::string &package, const std::string &inte
   startActivity(newIntent);
   if (xbmc_jnienv()->ExceptionCheck())
   {
-    CLog::Log(LOGERROR, "CXBMCApp::StartActivity - ExceptionOccurred launching %s", package.c_str());
+    CLog::Log(LOGERROR, "CXBMCApp::StartActivity - ExceptionOccurred launching {}", package);
     xbmc_jnienv()->ExceptionClear();
     return false;
   }
@@ -1015,7 +1023,7 @@ void CXBMCApp::onReceive(CJNIIntent intent)
     return;
 
   std::string action = intent.getAction();
-  CLog::Log(LOGDEBUG, "CXBMCApp::onReceive - Got intent. Action: %s", action.c_str());
+  CLog::Log(LOGDEBUG, "CXBMCApp::onReceive - Got intent. Action: {}", action);
   if (action == "android.intent.action.BATTERY_CHANGED")
     m_batteryLevel = intent.getIntExtra("level",-1);
   else if (action == "android.intent.action.DREAMING_STOPPED")
@@ -1060,7 +1068,7 @@ void CXBMCApp::onReceive(CJNIIntent intent)
   else if (action == "android.media.action.HDMI_AUDIO_PLUG")
   {
     m_hdmiPlugged = (intent.getIntExtra("android.media.extra.AUDIO_PLUG_STATE", 0) != 0);
-    CLog::Log(LOGDEBUG, "-- HDMI state: %s",  m_hdmiPlugged ? "on" : "off");
+    CLog::Log(LOGDEBUG, "-- HDMI state: {}", m_hdmiPlugged ? "on" : "off");
     if (m_hdmiSource && g_application.IsInitialized())
     {
       CWinSystemBase* winSystem = CServiceBroker::GetWinSystem();
@@ -1111,7 +1119,7 @@ void CXBMCApp::onReceive(CJNIIntent intent)
     int keycode = keyevt.getKeyCode();
     bool up = (keyevt.getAction() == CJNIKeyEvent::ACTION_UP);
 
-    CLog::Log(LOGINFO, "Got MEDIA_BUTTON intent: %d, up:%s", keycode, up ? "true" : "false");
+    CLog::Log(LOGINFO, "Got MEDIA_BUTTON intent: {}, up:{}", keycode, up ? "true" : "false");
     if (keycode == CJNIKeyEvent::KEYCODE_MEDIA_RECORD)
       CAndroidKey::XBMC_Key(keycode, XBMCK_RECORD, 0, 0, up);
     else if (keycode == CJNIKeyEvent::KEYCODE_MEDIA_EJECT)
@@ -1153,11 +1161,11 @@ void CXBMCApp::onNewIntent(CJNIIntent intent)
   }
 
   std::string action = intent.getAction();
-  CLog::Log(LOGDEBUG, "CXBMCApp::onNewIntent - Got intent. Action: %s", action.c_str());
+  CLog::Log(LOGDEBUG, "CXBMCApp::onNewIntent - Got intent. Action: {}", action);
   std::string targetFile = GetFilenameFromIntent(intent);
   if (!targetFile.empty() &&  (action == "android.intent.action.VIEW" || action == "android.intent.action.GET_CONTENT"))
   {
-    CLog::Log(LOGDEBUG, "-- targetFile: %s", targetFile.c_str());
+    CLog::Log(LOGDEBUG, "-- targetFile: {}", targetFile);
 
     CURL targeturl(targetFile);
     std::string value;
@@ -1250,6 +1258,18 @@ int CXBMCApp::WaitForActivityResult(const CJNIIntent &intent, int requestCode, C
     result = event->GetResultData();
     ret = event->GetResultCode();
   }
+
+  // delete from m_activityResultEvents map before deleting the event
+  CSingleLock lock(m_activityResultMutex);
+  for (auto it = m_activityResultEvents.begin(); it != m_activityResultEvents.end(); ++it)
+  {
+    if ((*it)->GetRequestCode() == requestCode)
+    {
+      m_activityResultEvents.erase(it);
+      break;
+    }
+  }
+
   delete event;
   return ret;
 }
@@ -1312,7 +1332,7 @@ float CXBMCApp::GetFrameLatencyMs()
 
 bool CXBMCApp::WaitVSync(unsigned int milliSeconds)
 {
-  return m_vsyncEvent.WaitMSec(milliSeconds);
+  return m_vsyncEvent.Wait(std::chrono::milliseconds(milliSeconds));
 }
 
 bool CXBMCApp::GetMemoryInfo(long& availMem, long& totalMem)
@@ -1347,6 +1367,12 @@ void CXBMCApp::SetupEnv()
   std::string className = CCompileInfo::GetPackage();
 
   std::string cacheDir = getCacheDir().getAbsolutePath();
+  std::string xbmcTemp = CJNISystem::getProperty("xbmc.temp", "");
+  if (!xbmcTemp.empty())
+  {
+    setenv("KODI_TEMP", xbmcTemp.c_str(), 0);
+  }
+
   std::string xbmcHome = CJNISystem::getProperty("xbmc.home", "");
   if (xbmcHome.empty())
   {
@@ -1488,7 +1514,7 @@ void CXBMCApp::onDisplayAdded(int displayId)
 
 void CXBMCApp::onDisplayChanged(int displayId)
 {
-  CLog::Log(LOGDEBUG, "CXBMCApp::%s: id: %d", __FUNCTION__, displayId);
+  CLog::Log(LOGDEBUG, "CXBMCApp::{}: id: {}", __FUNCTION__, displayId);
 
   // Update display modes
   CWinSystemAndroid* winSystemAndroid = dynamic_cast<CWinSystemAndroid*>(CServiceBroker::GetWinSystem());

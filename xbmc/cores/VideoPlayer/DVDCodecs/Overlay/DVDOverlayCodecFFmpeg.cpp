@@ -42,7 +42,7 @@ bool CDVDOverlayCodecFFmpeg::Open(CDVDStreamInfo &hints, CDVDCodecOptions &optio
   AVCodec* pCodec = avcodec_find_decoder(hints.codec);
   if (!pCodec)
   {
-    CLog::Log(LOGDEBUG,"%s - Unable to find codec %d", __FUNCTION__, hints.codec);
+    CLog::Log(LOGDEBUG, "{} - Unable to find codec {}", __FUNCTION__, hints.codec);
     return false;
   }
 
@@ -50,7 +50,6 @@ bool CDVDOverlayCodecFFmpeg::Open(CDVDStreamInfo &hints, CDVDCodecOptions &optio
   if (!m_pCodecContext)
     return false;
 
-  m_pCodecContext->debug_mv = 0;
   m_pCodecContext->debug = 0;
   m_pCodecContext->workaround_bugs = FF_BUG_AUTODETECT;
   m_pCodecContext->codec_tag = hints.codec_tag;
@@ -83,7 +82,7 @@ bool CDVDOverlayCodecFFmpeg::Open(CDVDStreamInfo &hints, CDVDCodecOptions &optio
         {
           m_pCodecContext->width = width;
           m_pCodecContext->height = height;
-          CLog::Log(LOGDEBUG,"%s - parsed extradata: size: %d x %d", __FUNCTION__,  width, height);
+          CLog::Log(LOGDEBUG, "{} - parsed extradata: size: {} x {}", __FUNCTION__, width, height);
         }
       }
       /*
@@ -128,24 +127,35 @@ int CDVDOverlayCodecFFmpeg::Decode(DemuxPacket *pPacket)
 
   avsubtitle_free(&m_Subtitle);
 
-  AVPacket avpkt;
-  av_init_packet(&avpkt);
-  avpkt.data = pPacket->pData;
-  avpkt.size = pPacket->iSize;
-  avpkt.pts = pPacket->pts == DVD_NOPTS_VALUE ? AV_NOPTS_VALUE : (int64_t)pPacket->pts;
-  avpkt.dts = pPacket->dts == DVD_NOPTS_VALUE ? AV_NOPTS_VALUE : (int64_t)pPacket->dts;
+  AVPacket* avpkt = av_packet_alloc();
+  if (!avpkt)
+  {
+    CLog::Log(LOGERROR, "CDVDOverlayCodecFFmpeg::{} - av_packet_alloc failed: {}", __FUNCTION__,
+              strerror(errno));
+    return OC_ERROR;
+  }
 
-  len = avcodec_decode_subtitle2(m_pCodecContext, &m_Subtitle, &gotsub, &avpkt);
+  avpkt->data = pPacket->pData;
+  avpkt->size = pPacket->iSize;
+  avpkt->pts = pPacket->pts == DVD_NOPTS_VALUE ? AV_NOPTS_VALUE : (int64_t)pPacket->pts;
+  avpkt->dts = pPacket->dts == DVD_NOPTS_VALUE ? AV_NOPTS_VALUE : (int64_t)pPacket->dts;
+
+  len = avcodec_decode_subtitle2(m_pCodecContext, &m_Subtitle, &gotsub, avpkt);
+
+  int size = avpkt->size;
+
+  av_packet_free(&avpkt);
 
   if (len < 0)
   {
-    CLog::Log(LOGERROR, "%s - avcodec_decode_subtitle returned failure", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} - avcodec_decode_subtitle returned failure", __FUNCTION__);
     Flush();
     return OC_ERROR;
   }
 
-  if (len != avpkt.size)
-    CLog::Log(LOGWARNING, "%s - avcodec_decode_subtitle didn't consume the full packet", __FUNCTION__);
+  if (len != size)
+    CLog::Log(LOGWARNING, "{} - avcodec_decode_subtitle didn't consume the full packet",
+              __FUNCTION__);
 
   if (!gotsub)
     return OC_BUFFER;

@@ -12,6 +12,7 @@
 #include "win32util.h"
 #include "windowing/windows/WinSystemWin32DX.h"
 
+#include "platform/win32/network/WSDiscoveryWin32.h"
 #include "platform/win32/powermanagement/Win32PowerSyscall.h"
 
 CPlatform* CPlatform::CreateInstance()
@@ -19,9 +20,14 @@ CPlatform* CPlatform::CreateInstance()
   return new CPlatformWin32();
 }
 
-bool CPlatformWin32::Init()
+CPlatformWin32::~CPlatformWin32()
 {
-  if (!CPlatform::Init())
+  CWSDiscoverySupport::Get()->Terminate();
+}
+
+bool CPlatformWin32::InitStageOne()
+{
+  if (!CPlatform::InitStageOne())
     return false;
 
   CEnvironment::setenv("OS", "win32"); // for python scripts that check the OS
@@ -34,4 +40,19 @@ bool CPlatformWin32::Init()
   CWin32PowerSyscall::Register();
 
   return true;
+}
+
+bool CPlatformWin32::InitStageThree()
+{
+  if (!CPlatform::InitStageThree())
+    return false;
+
+  CWSDiscoverySupport::Get()->Initialize();
+
+  return true;
+}
+
+void CPlatformWin32::PlatformSyslog()
+{
+  CWIN32Util::PlatformSyslog();
 }

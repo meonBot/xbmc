@@ -1,7 +1,7 @@
 ![Kodi Logo](resources/banner_slim.png)
 
 # macOS build guide
-This guide has been tested with macOS 10.13.4()17E199 High Sierra and Xcode 9.3(9E145). It is meant to build Kodi for macOS using **[Kodi's unified depends build system](../tools/depends/README.md)**. Please read it in full before you proceed to familiarize yourself with the build procedure.
+This guide has been tested using Xcode 11.3.1 running on MacOS 10.14.4 (Mojave). Please note this combination is the only version our CI system builds. The minimum OS requirement for this version of Xcode is MacOS 10.14.4. Other combinations may work but we provide no assurances that other combinations will build correctly and run identically to Team Kodi releases. It is meant to build Kodi for macOS using **[Kodi's unified depends build system](../tools/depends/README.md)**. Please read it in full before you proceed to familiarize yourself with the build procedure.
 
 ## Table of Contents
 1. **[Document conventions](#1-document-conventions)**
@@ -254,7 +254,7 @@ xcodebuild -target dmg
 ````
 **OR**
 ```
-cd $HOME/kodi-build/build
+cd $HOME/kodi-build
 /Users/Shared/xbmc-depends/x86_64-darwin17.5.0-native/bin/cmake --build . --target "dmg" --config "Debug"
 ```
 
@@ -262,11 +262,11 @@ Generated `dmg` file will be inside `$HOME/kodi-build/tools/darwin/packaging/osx
 
 Alternatively, if you built using make:
 ```
-cd $HOME/kodi/build
+cd $HOME/kodi-build
 make dmg
 ```
 
-Generated `dmg` file will be inside `$HOME/kodi/build/tools/darwin/packaging/osx/`.
+Generated `dmg` file will be inside `$HOME/kodi-build/tools/darwin/packaging/osx/`.
 
 **[back to top](#table-of-contents)**
 

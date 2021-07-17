@@ -404,16 +404,13 @@
 						<include content="WidgetListCategories" condition="System.HasPVRAddon">
 							<param name="content_path" value="pvr://tv/"/>
 							<param name="widget_header" value="$LOCALIZE[31148]"/>
-							<param name="widget_target" value="pvr"/>
 							<param name="list_id" value="12900"/>
 						</include>
-
 						<include content="WidgetListChannels" condition="System.HasPVRAddon">
 							<param name="content_path" value="pvr://channels/tv/*?view=lastplayed"/>
 							<param name="sortby" value="lastplayed"/>
 							<param name="sortorder" value="descending"/>
 							<param name="widget_header" value="$LOCALIZE[31016]"/>
-							<param name="widget_target" value="pvr"/>
 							<param name="list_id" value="12200"/>
 						</include>
 						<include content="WidgetListChannels" condition="System.HasPVRAddon">
@@ -421,7 +418,6 @@
 							<param name="sortby" value="date"/>
 							<param name="sortorder" value="descending"/>
 							<param name="widget_header" value="$LOCALIZE[31015]"/>
-							<param name="widget_target" value="pvr"/>
 							<param name="list_id" value="12300"/>
 							<param name="label" value="$INFO[ListItem.ChannelName]"/>
 							<param name="label2" value="$INFO[ListItem.Title]$INFO[ListItem.EpisodeName, (,)]"/>
@@ -437,7 +433,7 @@
 					<include content="ImageWidget" condition="!System.HasPVRAddon">
 						<param name="text_label" value="$LOCALIZE[31143]" />
 						<param name="button_label" value="$LOCALIZE[31144]" />
-						<param name="button_onclick" value="ActivateWindow(addonbrowser,addons://all/kodi.pvrclient,return)"/>
+						<param name="button_onclick" value="ActivateWindow(addonbrowser,addons://default_binary_addons_source/kodi.pvrclient,return)"/>
 						<param name="button_id" value="12400"/>
 						<param name="button2_onclick" value="Skin.SetBool(HomeMenuNoTVButton)"/>
 					</include>
@@ -455,11 +451,11 @@
 						<pagecontrol>13010</pagecontrol>
 						<control type="grouplist" id="13855">
 							<height>390</height>
-							<left>25</left>
+							<left>0</left>
+							<right>0</right>
 							<top>36</top>
 							<orientation>horizontal</orientation>
-							<align>right</align>
-							<width>1360</width>
+							<align>center</align>
 							<visible>PVR.IsRecordingRadio | PVR.HasNonRecordingRadioTimer</visible>
 							<control type="group">
 								<width>680</width>
@@ -485,7 +481,6 @@
 						<include content="WidgetListCategories" condition="System.HasPVRAddon">
 							<param name="content_path" value="pvr://radio/"/>
 							<param name="widget_header" value="$LOCALIZE[31148]"/>
-							<param name="widget_target" value="pvr"/>
 							<param name="list_id" value="13900"/>
 						</include>
 						<include content="WidgetListChannels" condition="System.HasPVRAddon">
@@ -493,7 +488,6 @@
 							<param name="sortby" value="lastplayed"/>
 							<param name="sortorder" value="descending"/>
 							<param name="widget_header" value="$LOCALIZE[31018]"/>
-							<param name="widget_target" value="files"/>
 							<param name="list_id" value="13200"/>
 						</include>
 						<include content="WidgetListChannels" condition="System.HasPVRAddon">
@@ -501,7 +495,6 @@
 							<param name="sortby" value="date"/>
 							<param name="sortorder" value="descending"/>
 							<param name="widget_header" value="$LOCALIZE[31015]"/>
-							<param name="widget_target" value="pvr"/>
 							<param name="list_id" value="13300"/>
 							<param name="label" value="$INFO[ListItem.ChannelName]"/>
 							<param name="label2" value="$INFO[ListItem.Title]$INFO[ListItem.EpisodeName, (,)]"/>
@@ -517,7 +510,7 @@
 					<include content="ImageWidget" condition="!System.HasPVRAddon">
 						<param name="text_label" value="$LOCALIZE[31143]" />
 						<param name="button_label" value="$LOCALIZE[31144]" />
-						<param name="button_onclick" value="ActivateWindow(addonbrowser,addons://all/kodi.pvrclient,return)"/>
+						<param name="button_onclick" value="ActivateWindow(addonbrowser,addons://default_binary_addons_source/kodi.pvrclient,return)"/>
 						<param name="button_id" value="13400"/>
 						<param name="button2_onclick" value="Skin.SetBool(HomeMenuNoRadioButton)"/>
 					</include>
@@ -817,7 +810,7 @@
 					<include content="ImageWidget">
 						<param name="text_label" value="$LOCALIZE[31162]" />
 						<param name="button_label" value="$LOCALIZE[31144]" />
-						<param name="button_onclick" value="ActivateWindow(addonbrowser,addons://all/category.gameaddons,return)"/>
+						<param name="button_onclick" value="ActivateWindow(addonbrowser,addons://default_binary_addons_source/category.gameaddons,return)"/>
 						<param name="button_id" value="17100"/>
 						<param name="visible" value="!Integer.IsGreater(Container(17001).NumItems,0)"/>
 						<param name="button2_onclick" value="Skin.SetBool(HomeMenuNoGamesButton)"/>

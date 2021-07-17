@@ -15,7 +15,6 @@
 
 #include "commons/Exception.h"
 #include "threads/SingleLock.h"
-#include "threads/SystemClock.h"
 #include "utils/log.h"
 
 #include <atomic>
@@ -71,13 +70,12 @@ void CThread::Create(bool bAutoDelete)
       StopThread(true);  // so let's just clean up
     else
     { // otherwise we have a problem.
-      CLog::Log(LOGERROR, "%s - fatal error creating thread %s - old thread id not null", __FUNCTION__, m_ThreadName.c_str());
+      CLog::Log(LOGERROR, "{} - fatal error creating thread {} - old thread id not null",
+                __FUNCTION__, m_ThreadName);
       exit(1);
     }
   }
-  m_iLastTime = XbmcThreads::SystemClockMillis() * 10000ULL;
-  m_iLastUsage = 0;
-  m_fLastUsage = 0.0f;
+
   m_bAutoDelete = bAutoDelete;
   m_bStop = false;
   m_StopEvent.Reset();
@@ -119,7 +117,7 @@ void CThread::Create(bool bAutoDelete)
 
         if (pThread == nullptr)
         {
-          CLog::Log(LOGERROR,"%s, sanity failed. thread is NULL.",__FUNCTION__);
+          CLog::Log(LOGERROR, "{}, sanity failed. thread is NULL.", __FUNCTION__);
           promise.set_value(false);
           return;
         }
@@ -133,7 +131,8 @@ void CThread::Create(bool bAutoDelete)
 
         pThread->SetThreadInfo();
 
-        CLog::Log(LOGDEBUG,"Thread %s start, auto delete: %s", name.c_str(), (autodelete ? "true" : "false"));
+        CLog::Log(LOGDEBUG, "Thread {} start, auto delete: {}", name,
+                  (autodelete ? "true" : "false"));
 
         pThread->m_StartEvent.Set();
 
@@ -147,16 +146,16 @@ void CThread::Create(bool bAutoDelete)
 
         if (autodelete)
         {
-          CLog::Log(LOGDEBUG,"Thread %s %s terminating (autodelete)", name.c_str(), id.c_str());
+          CLog::Log(LOGDEBUG, "Thread {} {} terminating (autodelete)", name, id);
           delete pThread;
           pThread = NULL;
         }
         else
-          CLog::Log(LOGDEBUG,"Thread %s %s terminating", name.c_str(), id.c_str());
+          CLog::Log(LOGDEBUG, "Thread {} {} terminating", name, id);
       }
       catch (const std::exception& e)
       {
-        CLog::Log(LOGDEBUG,"Thread Terminating with Exception: %s", e.what());
+        CLog::Log(LOGDEBUG, "Thread Terminating with Exception: {}", e.what());
       }
       catch (...)
       {
@@ -201,7 +200,7 @@ void CThread::StopThread(bool bWait /*= true*/)
   if (lthread != nullptr && bWait && !IsCurrentThread())
   {
     lock.Leave();
-    if (!Join(0xFFFFFFFF)) // eh?
+    if (!Join(std::chrono::milliseconds::max())) // eh?
       lthread->join();
     m_thread = nullptr;
   }
@@ -231,15 +230,7 @@ void CThread::TermHandler()
 {
 }
 
-void CThread::Sleep(unsigned int milliseconds)
-{
-  if (milliseconds > 10 && IsCurrentThread())
-    m_StopEvent.WaitMSec(milliseconds);
-  else
-    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
-}
-
-bool CThread::Join(unsigned int milliseconds)
+bool CThread::Join(std::chrono::milliseconds duration)
 {
   CSingleLock l(m_CriticalSection);
   std::thread* lthread = m_thread;
@@ -250,7 +241,7 @@ bool CThread::Join(unsigned int milliseconds)
 
     {
       CSingleExit exit(m_CriticalSection); // don't hold the thread lock while we're waiting
-      std::future_status stat = m_future.wait_for(std::chrono::milliseconds(milliseconds));
+      std::future_status stat = m_future.wait_for(duration);
       if (stat != std::future_status::ready)
         return false;
     }
@@ -295,24 +286,3 @@ void CThread::Action()
     e.LogThrowMessage("OnExit");
   }
 }
-
-float CThread::GetRelativeUsage()
-{
-  unsigned int iTime = XbmcThreads::SystemClockMillis();
-  iTime *= 10000; // convert into 100ns tics
-
-  // only update every 1 second
-  if (iTime < m_iLastTime + 1000 * 10000)
-    return m_fLastUsage;
-
-  int64_t iUsage = GetAbsoluteUsage();
-
-  if (m_iLastUsage > 0 && m_iLastTime > 0)
-    m_fLastUsage = static_cast<float>(iUsage - m_iLastUsage) / static_cast<float>(iTime - m_iLastTime);
-
-  m_iLastUsage = iUsage;
-  m_iLastTime = iTime;
-
-  return m_fLastUsage;
-}
-

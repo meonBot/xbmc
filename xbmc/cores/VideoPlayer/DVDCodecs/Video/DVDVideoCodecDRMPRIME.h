@@ -20,7 +20,7 @@ public:
   explicit CDVDVideoCodecDRMPRIME(CProcessInfo& processInfo);
   ~CDVDVideoCodecDRMPRIME() override;
 
-  static CDVDVideoCodec* Create(CProcessInfo& processInfo);
+  static std::unique_ptr<CDVDVideoCodec> Create(CProcessInfo& processInfo);
   static void Register();
 
   bool Open(CDVDStreamInfo& hints, CDVDCodecOptions& options) override;
@@ -29,7 +29,7 @@ public:
   CDVDVideoCodec::VCReturn GetPicture(VideoPicture* pVideoPicture) override;
   const char* GetName() override { return m_name.c_str(); }
   unsigned GetAllowedReferences() override { return 5; }
-  void SetCodecControl(int flags) override { m_codecControlFlags = flags; }
+  void SetCodecControl(int flags) override;
 
 protected:
   void Drain();

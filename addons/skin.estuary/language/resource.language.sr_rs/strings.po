@@ -1,7 +1,7 @@
 # Kodi Media Center language file
 # Addon Name: Estuary
 # Addon id: skin.estuary
-# Addon Provider: phil65, Ichabod Fletchman
+# Addon Provider: Team Kodi
 msgid ""
 msgstr ""
 "Project-Id-Version: KODI Main\n"
@@ -10,11 +10,23 @@ msgstr ""
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Kodi Translation Team\n"
 "Language-Team: Serbian (Serbia) (http://www.transifex.com/projects/p/kodi-main/language/sr_RS/)\n"
+"Language: sr_RS\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: sr_RS\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgctxt "Addon Summary"
+msgid "Estuary skin by phil65. (Kodi's default skin)"
+msgstr "Маска Estuary аутора phil65 и Piers. (Подразумевана Коди маска)"
+
+msgctxt "Addon Description"
+msgid "Estuary is the default skin for Kodi 17.0 and above. It attempts to be easy for first time Kodi users to understand and use."
+msgstr "Estuary је подразумевана маска за Kodi 17.0 и изнад. Покушава да буде једноставан за разумевање и коришћење новим корисницима Kodi-ја."
+
+msgctxt "Addon Disclaimer"
+msgid "Estuary is the default skin for Kodi, removing it may cause issues"
+msgstr "Estuary је подразумевана маска за Kodi, уклањање може изазвати проблеме"
 
 msgctxt "#31000"
 msgid "Now playing"
@@ -48,6 +60,10 @@ msgctxt "#31007"
 msgid "Unwatched movies"
 msgstr "Неодгледани филмови"
 
+msgctxt "#31008"
+msgid "Enable category widgets"
+msgstr ""
+
 msgctxt "#31009"
 msgid "Download icons"
 msgstr "Преузми иконице"
@@ -72,10 +88,12 @@ msgctxt "#31014"
 msgid "Unplayed albums"
 msgstr "Непреслушани албуми"
 
+#. home screen recordings widget: recent tv / radio recordings
 msgctxt "#31015"
 msgid "Recent recordings"
 msgstr "Скорашњи снимци"
 
+#. home screen channel widget: recently played tv channels. (please note that in some non-english languages #31018 and #31016 might not be equal)
 msgctxt "#31016"
 msgid "Recently played channels"
 msgstr "Скорашњи канали"
@@ -84,6 +102,7 @@ msgctxt "#31017"
 msgid "Rated"
 msgstr "Оцењено"
 
+#. home screen channel widget: recently played radio channels. (please note that in some non-english languages #31018 and #31016 might not be equal)
 msgctxt "#31018"
 msgid "Recently played channels"
 msgstr "Недавно репродуковани канали"
@@ -108,6 +127,10 @@ msgctxt "#31023"
 msgid "Viewtype"
 msgstr "Приказ"
 
+msgctxt "#31024"
+msgid "Choose rating to display for media items"
+msgstr ""
+
 msgctxt "#31025"
 msgid "No favourites found. You can add any item from media views to this list by using the context menu."
 msgstr "Омиљено није пронађено. Можете додати било коју ставку из приказа медија овој листи коришћењем менија опција."
@@ -115,6 +138,10 @@ msgstr "Омиљено није пронађено. Можете додати б
 msgctxt "#31026"
 msgid "Timeshift"
 msgstr "Померај времена"
+
+msgctxt "#31027"
+msgid "Next aired"
+msgstr ""
 
 msgctxt "#31028"
 msgid "Show fanart"
@@ -151,6 +178,10 @@ msgstr "Странице"
 msgctxt "#31036"
 msgid "items"
 msgstr "ставке"
+
+msgctxt "#31037"
+msgid "Selected track"
+msgstr ""
 
 msgctxt "#31038"
 msgid "Rewind"
@@ -196,6 +227,14 @@ msgctxt "#31053"
 msgid "Arial based"
 msgstr "Засновано на Arial-у"
 
+msgctxt "#31054"
+msgid "Press [B]Left[/B] to step back, or [B]Right[/B] to step forward"
+msgstr ""
+
+msgctxt "#31055"
+msgid "Press [B]Right[/B] to frame advance"
+msgstr ""
+
 msgctxt "#31056"
 msgid "Go to playlist"
 msgstr "Иди на листу за репродукцију"
@@ -207,6 +246,14 @@ msgstr "Прикажи екран за пријаву при укључивањ�
 msgctxt "#31058"
 msgid "Automatic Login on startup"
 msgstr "Аутоматска Пријава при укључивању"
+
+msgctxt "#31059"
+msgid "Select + X"
+msgstr ""
+
+msgctxt "#31060"
+msgid "Select + Start"
+msgstr ""
 
 msgctxt "#31061"
 msgid "Main menu items"
@@ -247,6 +294,10 @@ msgstr "од стране"
 msgctxt "#31072"
 msgid "Power Options"
 msgstr "Опције напајања"
+
+msgctxt "#31073"
+msgid "Total length"
+msgstr ""
 
 msgctxt "#31074"
 msgid "Total duration"
@@ -304,18 +355,22 @@ msgctxt "#31098"
 msgid "Select your Kodi user profile[CR]to login and continue"
 msgstr "Одаберите ваш Kodi кориснички профил[CR]за пријаву, а потом наставите даље"
 
+#. viewtype name
 msgctxt "#31099"
 msgid "IconWall"
 msgstr "IconWall"
 
+#. viewtype name
 msgctxt "#31100"
 msgid "Shift"
 msgstr "Shift"
 
+#. viewtype name
 msgctxt "#31101"
 msgid "InfoWall"
 msgstr "ИнфоЗид"
 
+#. viewtype name
 msgctxt "#31102"
 msgid "Wall"
 msgstr "Зид"
@@ -336,6 +391,7 @@ msgctxt "#31106"
 msgid "Teletext"
 msgstr "Телетекст"
 
+#. viewtype name
 msgctxt "#31107"
 msgid "WideList"
 msgstr "ШирокаЛиста"
@@ -359,6 +415,10 @@ msgstr "Претражи локалну библиотеку"
 msgctxt "#31114"
 msgid "Search YouTube"
 msgstr "Претражи YouTube"
+
+msgctxt "#31115"
+msgid "Toggle subtitle"
+msgstr ""
 
 msgctxt "#31116"
 msgid "Remove this main menu item"
@@ -420,9 +480,21 @@ msgctxt "#31131"
 msgid "Choose skin fanart pack"
 msgstr "Изаберите пакет уметности љубитеља за маску"
 
+msgctxt "#31132"
+msgid "Select Program"
+msgstr "Изаберите програм"
+
+msgctxt "#31133"
+msgid "Select Resolution"
+msgstr "Изаберите резолуцију екрана"
+
 msgctxt "#31134"
 msgid "Remaining"
 msgstr "Преостало"
+
+msgctxt "#31135"
+msgid "Binary"
+msgstr ""
 
 msgctxt "#31136"
 msgid "Click here to see latest changes..."
@@ -464,6 +536,14 @@ msgctxt "#31145"
 msgid "Search add-ons"
 msgstr "Претражи додатне програме"
 
+msgctxt "#31146"
+msgid "In cinemas"
+msgstr ""
+
+msgctxt "#31147"
+msgid "In cinemas soon"
+msgstr ""
+
 msgctxt "#31148"
 msgid "Categories"
 msgstr "Категорије"
@@ -471,6 +551,10 @@ msgstr "Категорије"
 msgctxt "#31149"
 msgid "Select genre fanart pack"
 msgstr "Изаберите пакет уметности љубитеља жанра"
+
+msgctxt "#31150"
+msgid "Origin"
+msgstr ""
 
 msgctxt "#31151"
 msgid "Unwatched music videos"
@@ -516,6 +600,40 @@ msgctxt "#31161"
 msgid "Numeric pad"
 msgstr "Нумеричка тастатура"
 
+msgctxt "#31162"
+msgid "Play your personal games or download one of the many game add-ons from the official repository."
+msgstr ""
+
+msgctxt "#31163"
+msgid "Show Fanart background"
+msgstr ""
+
+#. Choose profile identifier
+msgctxt "#31164"
+msgid "Choose kind of profile identification"
+msgstr ""
+
+#. Label for the kind of profile identification
 msgctxt "#31165"
 msgid "Profile name"
 msgstr "Име профила"
+
+#. Label for the kind of profile identification
+msgctxt "#31166"
+msgid "Profile avatar"
+msgstr ""
+
+#. Label of a setting
+msgctxt "#31167"
+msgid "Animate background"
+msgstr ""
+
+#. Label of a setting
+msgctxt "#31168"
+msgid "Show posters instead of thumbs for musicvideos"
+msgstr ""
+
+#. Description label for skin settings area
+msgctxt "#31169"
+msgid "Artwork related settings."
+msgstr ""

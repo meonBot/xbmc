@@ -71,7 +71,7 @@ CWinRenderer::~CWinRenderer()
 CRendererBase* CWinRenderer::SelectRenderer(const VideoPicture& picture)
 {
   int iRequestedMethod = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_RENDERMETHOD);
-  CLog::LogF(LOGDEBUG, "requested render method: %d", iRequestedMethod);
+  CLog::LogF(LOGDEBUG, "requested render method: {}", iRequestedMethod);
 
   std::map<RenderMethod, int> weights;
   for (auto& details : RenderMethodDetails)
@@ -332,4 +332,12 @@ bool CWinRenderer::NeedBuffer(int idx)
     return false;
 
   return m_renderer->NeedBuffer(idx);
+}
+
+DEBUG_INFO_VIDEO CWinRenderer::GetDebugInfo(int idx)
+{
+  if (!m_bConfigured)
+    return {};
+
+  return m_renderer->GetDebugInfo(idx);
 }

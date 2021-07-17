@@ -170,7 +170,7 @@ namespace XBMCAddon
 
       CApplicationMessenger::GetInstance().SendMsg(TMSG_PLAYLISTPLAYER_PLAY, selected);
       //CServiceBroker::GetPlaylistPlayer().Play(selected);
-      //CLog::Log(LOGINFO, "Current Song After Play: %i", CServiceBroker::GetPlaylistPlayer().GetCurrentSong());
+      //CLog::Log(LOGINFO, "Current Song After Play: {}", CServiceBroker::GetPlaylistPlayer().GetCurrentSong());
     }
 
     void Player::OnPlayBackStarted(const CFileItem &file)
@@ -345,35 +345,45 @@ namespace XBMCAddon
     {
       XBMC_TRACE;
       if (!g_application.GetAppPlayer().IsPlaying())
-        throw PlayerException("XBMC is not playing any file");
+        throw PlayerException("Kodi is not playing any file");
 
       return g_application.CurrentFileItem().GetDynPath();
+    }
+
+    XBMCAddon::xbmcgui::ListItem* Player::getPlayingItem()
+    {
+      XBMC_TRACE;
+      if (!g_application.GetAppPlayer().IsPlaying())
+        throw PlayerException("Kodi is not playing any item");
+
+      CFileItemPtr itemPtr = std::make_shared<CFileItem>(g_application.CurrentFileItem());
+      return new XBMCAddon::xbmcgui::ListItem(itemPtr);
     }
 
     InfoTagVideo* Player::getVideoInfoTag()
     {
       XBMC_TRACE;
       if (!g_application.GetAppPlayer().IsPlayingVideo())
-        throw PlayerException("XBMC is not playing any videofile");
+        throw PlayerException("Kodi is not playing any videofile");
 
       const CVideoInfoTag* movie = CServiceBroker::GetGUI()->GetInfoManager().GetCurrentMovieTag();
       if (movie)
-        return new InfoTagVideo(*movie);
+        return new InfoTagVideo(movie);
 
-      return new InfoTagVideo();
+      return new InfoTagVideo(true);
     }
 
     InfoTagMusic* Player::getMusicInfoTag()
     {
       XBMC_TRACE;
       if (g_application.GetAppPlayer().IsPlayingVideo() || !g_application.GetAppPlayer().IsPlayingAudio())
-        throw PlayerException("XBMC is not playing any music file");
+        throw PlayerException("Kodi is not playing any music file");
 
       const MUSIC_INFO::CMusicInfoTag* tag = CServiceBroker::GetGUI()->GetInfoManager().GetCurrentSongTag();
       if (tag)
-        return new InfoTagMusic(*tag);
+        return new InfoTagMusic(tag);
 
-      return new InfoTagMusic();
+      return new InfoTagMusic(true);
     }
 
     void Player::updateInfoTag(const XBMCAddon::xbmcgui::ListItem* item)
@@ -403,7 +413,7 @@ namespace XBMCAddon
     {
       XBMC_TRACE;
       if (!g_application.GetAppPlayer().IsPlaying())
-        throw PlayerException("XBMC is not playing any media file");
+        throw PlayerException("Kodi is not playing any media file");
 
       return g_application.GetTotalTime();
     }
@@ -412,7 +422,7 @@ namespace XBMCAddon
     {
       XBMC_TRACE;
       if (!g_application.GetAppPlayer().IsPlaying())
-        throw PlayerException("XBMC is not playing any media file");
+        throw PlayerException("Kodi is not playing any media file");
 
       return g_application.GetTime();
     }
@@ -421,7 +431,7 @@ namespace XBMCAddon
     {
       XBMC_TRACE;
       if (!g_application.GetAppPlayer().IsPlaying())
-        throw PlayerException("XBMC is not playing any media file");
+        throw PlayerException("Kodi is not playing any media file");
 
       g_application.SeekTime( pTime );
     }

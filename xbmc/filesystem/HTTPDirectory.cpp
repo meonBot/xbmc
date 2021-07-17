@@ -36,12 +36,12 @@ bool CHTTPDirectory::GetDirectory(const CURL& url, CFileItemList &items)
 
   if(!http.Open(url))
   {
-    CLog::Log(LOGERROR, "%s - Unable to get http directory (%s)", __FUNCTION__, url.GetRedacted().c_str());
+    CLog::Log(LOGERROR, "{} - Unable to get http directory ({})", __FUNCTION__, url.GetRedacted());
     return false;
   }
 
   CRegExp reItem(true); // HTML is case-insensitive
-  reItem.RegComp("<a href=\"(.*?)\">\\s*(.*?)\\s*</a>(.+?)(?=<a|</tr|$)");
+  reItem.RegComp("<a href=\"([^\"]*)\"[^>]*>\\s*(.*?)\\s*</a>(.+?)(?=<a|</tr|$)");
 
   CRegExp reDateTimeHtml(true);
   reDateTimeHtml.RegComp(
@@ -54,6 +54,10 @@ bool CHTTPDirectory::GetDirectory(const CURL& url, CFileItemList &items)
   CRegExp reDateTimeNginx(true);
   reDateTimeNginx.RegComp("([0-9]{2})-([A-Z]{3})-([0-9]{4}) ([0-9]{2}):([0-9]{2})");
 
+  CRegExp reDateTimeNginxFancy(true);
+  reDateTimeNginxFancy.RegComp(
+      "<td class=\"date\">([0-9]{4})-([A-Z]{3})-([0-9]{2}) ([0-9]{2}):([0-9]{2})</td>");
+
   CRegExp reDateTimeApacheNewFormat(true);
   reDateTimeApacheNewFormat.RegComp(
       "<td align=\"right\">([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}) +</td>");
@@ -62,7 +66,7 @@ bool CHTTPDirectory::GetDirectory(const CURL& url, CFileItemList &items)
   reDateTime.RegComp("([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2})");
 
   CRegExp reSizeHtml(true);
-  reSizeHtml.RegComp("> *([0-9.]+)(B|K|M|G| )</td>");
+  reSizeHtml.RegComp("> *([0-9.]+) *(B|K|M|G| )(iB)?</td>");
 
   CRegExp reSize(true);
   reSize.RegComp(" +([0-9]+)(B|K|M|G)?(?=\\s|<|$)");
@@ -116,7 +120,24 @@ bool CHTTPDirectory::GetDirectory(const CURL& url, CFileItemList &items)
         strLinkOptions = strLinkBase.substr(pos);
         strLinkBase.erase(pos);
       }
-      
+
+      // strip url fragment from the link
+      pos = strLinkBase.find('#');
+      if (pos != std::string::npos)
+      {
+        strLinkBase.erase(pos);
+      }
+
+      // Convert any HTTP character entities (e.g.: "&amp;") to percentage encoding
+      // (e.g.: "%xx") as some web servers (Apache) put these in HTTP Directory Indexes
+      // this is also needed as CURL objects interpret them incorrectly due to the ;
+      // also being allowed as URL option separator
+      if (fileCharset.empty())
+        g_charsetConverter.unknownToUTF8(strLinkBase);
+      g_charsetConverter.utf8ToW(strLinkBase, wLink, false);
+      HTML::CHTMLUtil::ConvertHTMLToW(wLink, wConverted);
+      g_charsetConverter.wToUTF8(wConverted, strLinkBase);
+
       // encoding + and ; to URL encode if it is not already encoded by http server used on the remote server (example: Apache)
       // more characters may be added here when required when required by certain http servers
       pos = strLinkBase.find_first_of("+;");
@@ -132,11 +153,6 @@ bool CHTTPDirectory::GetDirectory(const CURL& url, CFileItemList &items)
 
       URIUtils::RemoveSlashAtEnd(strLinkTemp);
       strLinkTemp = CURL::Decode(strLinkTemp);
-      if (fileCharset.empty())
-        g_charsetConverter.unknownToUTF8(strLinkTemp);
-      g_charsetConverter.utf8ToW(strLinkTemp, wLink, false);
-      HTML::CHTMLUtil::ConvertHTMLToW(wLink, wConverted);
-      g_charsetConverter.wToUTF8(wConverted, strLinkTemp);
 
       if (StringUtils::EndsWith(strNameTemp, "..>") &&
           StringUtils::StartsWith(strLinkTemp, strNameTemp.substr(0, strNameTemp.length() - 3)))
@@ -155,20 +171,11 @@ bool CHTTPDirectory::GetDirectory(const CURL& url, CFileItemList &items)
 
       // we detect http directory items by its display name and its stripped link
       // if same, we consider it as a valid item.
-      if (NameMatchesLink(strNameTemp, strLinkTemp) && strLinkTemp != "..")
+      if (strLinkTemp != ".." && strLinkTemp != "" && NameMatchesLink(strNameTemp, strLinkTemp))
       {
         CFileItemPtr pItem(new CFileItem(strNameTemp));
         pItem->SetProperty("IsHTTPDirectory", true);
         CURL url2(url);
-
-        /* NOTE: Force any &...; encoding (e.g. &amp;) into % encoding else CURL objects interpret them incorrectly
-         * due to the ; also being allowed as URL option separator
-         */
-        if (fileCharset.empty())
-          g_charsetConverter.unknownToUTF8(strLinkBase);
-        g_charsetConverter.utf8ToW(strLinkBase, wLink, false);
-        HTML::CHTMLUtil::ConvertHTMLToW(wLink, wConverted);
-        g_charsetConverter.wToUTF8(wConverted, strLinkBase);
 
         url2.SetFileName(strBasePath + strLinkBase);
         url2.SetOptions(strLinkOptions);
@@ -187,6 +194,14 @@ bool CHTTPDirectory::GetDirectory(const CURL& url, CFileItemList &items)
           year = reDateTimeHtml.GetMatch(3);
           hour = reDateTimeHtml.GetMatch(4);
           minute = reDateTimeHtml.GetMatch(5);
+        }
+        else if (reDateTimeNginxFancy.RegFind(strMetadata.c_str()) >= 0)
+        {
+          day = reDateTimeNginxFancy.GetMatch(3);
+          month = reDateTimeNginxFancy.GetMatch(2);
+          year = reDateTimeNginxFancy.GetMatch(1);
+          hour = reDateTimeNginxFancy.GetMatch(4);
+          minute = reDateTimeNginxFancy.GetMatch(5);
         }
         else if (reDateTimeNginx.RegFind(strMetadata.c_str()) >= 0)
         {

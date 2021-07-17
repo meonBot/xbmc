@@ -41,11 +41,13 @@ void CRendererVAAPI::Register(IVaapiWinSystem *winSystem, VADisplay vaDpy, EGLDi
   }
 
   CVaapi2Texture::TestInterop(vaDpy, eglDisplay, general, deepColor);
-  CLog::Log(LOGDEBUG, "Vaapi2 EGL interop test results: general %s, deepColor %s", general ? "yes" : "no", deepColor ? "yes" : "no");
+  CLog::Log(LOGDEBUG, "Vaapi2 EGL interop test results: general {}, deepColor {}",
+            general ? "yes" : "no", deepColor ? "yes" : "no");
   if (!general)
   {
     CVaapi1Texture::TestInterop(vaDpy, eglDisplay, general, deepColor);
-    CLog::Log(LOGDEBUG, "Vaapi1 EGL interop test results: general %s, deepColor %s", general ? "yes" : "no", deepColor ? "yes" : "no");
+    CLog::Log(LOGDEBUG, "Vaapi1 EGL interop test results: general {}, deepColor {}",
+              general ? "yes" : "no", deepColor ? "yes" : "no");
   }
 
   vaTerminate(vaDpy);
@@ -107,6 +109,18 @@ bool CRendererVAAPI::Configure(const VideoPicture &picture, float fps, unsigned 
   }
 
   return CLinuxRendererGL::Configure(picture, fps, orientation);
+}
+
+bool CRendererVAAPI::Flush(bool saveBuffers)
+{
+  for (auto &vaapiTexture : m_vaapiTextures)
+  {
+    if (m_isVAAPIBuffer)
+    {
+      vaapiTexture->Unmap();
+    }
+  }
+  return CLinuxRendererGL::Flush(saveBuffers);
 }
 
 bool CRendererVAAPI::ConfigChanged(const VideoPicture &picture)

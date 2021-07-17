@@ -8,6 +8,8 @@
 
 #include "Monitor.h"
 
+#include "threads/SystemClock.h"
+
 #include <algorithm>
 #include <math.h>
 
@@ -36,13 +38,17 @@ namespace XBMCAddon
     {
       XBMC_TRACE;
       int timeoutMS = ceil(timeout * 1000);
-      XbmcThreads::EndTime endTime(timeoutMS > 0 ? timeoutMS : XbmcThreads::EndTime::InfiniteValue);
+      XbmcThreads::EndTime endTime(timeoutMS);
+
+      if (timeoutMS <= 0)
+        endTime.SetInfinite();
+
       while (!endTime.IsTimePast())
       {
         {
           DelayedCallGuard dg(languageHook);
           unsigned int t = std::min(endTime.MillisLeft(), 100u);
-          if (abortEvent.WaitMSec(t))
+          if (abortEvent.Wait(std::chrono::milliseconds(t)))
             return true;
         }
         if (languageHook)

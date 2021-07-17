@@ -22,11 +22,14 @@
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "threads/SingleLock.h"
+#include "threads/SystemClock.h"
 #include "utils/log.h"
 
 #include <memory>
 #include <utility>
 #include <vector>
+
+using namespace std::chrono_literals;
 
 namespace PVR
 {
@@ -431,12 +434,12 @@ void CPVREpgContainer::Process()
       iLastSave = iNow;
     }
 
-    CThread::Sleep(1000);
+    CThread::Sleep(1000ms);
   }
 
   // store data on exit
   CLog::Log(LOGINFO, "EPG Container: Persisting unsaved events...");
-  PersistAll(XbmcThreads::EndTime::InfiniteValue);
+  PersistAll(std::numeric_limits<unsigned int>::max());
   CLog::Log(LOGINFO, "EPG Container: Persisting events done");
 }
 
@@ -523,7 +526,7 @@ std::vector<std::shared_ptr<CPVREpgInfoTag>> CPVREpgContainer::GetTags(
     const PVREpgSearchData& searchData) const
 {
   // make sure we have up-to-date data in the database.
-  PersistAll(XbmcThreads::EndTime::InfiniteValue);
+  PersistAll(std::numeric_limits<unsigned int>::max());
 
   const std::shared_ptr<CPVREpgDatabase> database = GetEpgDatabase();
   std::vector<std::shared_ptr<CPVREpgInfoTag>> results = database->GetEpgTags(searchData);
@@ -634,7 +637,7 @@ bool CPVREpgContainer::QueueDeleteEpgs(const std::vector<std::shared_ptr<CPVREpg
   database->Lock();
   for (const auto& epg : epgs)
   {
-    QueueDeleteEpg(epg);
+    QueueDeleteEpg(epg, database);
     epg->Unlock();
 
     size_t queryCount = database->GetDeleteQueriesCount();
@@ -647,17 +650,11 @@ bool CPVREpgContainer::QueueDeleteEpgs(const std::vector<std::shared_ptr<CPVREpg
   return true;
 }
 
-bool CPVREpgContainer::QueueDeleteEpg(const std::shared_ptr<CPVREpg>& epg)
+bool CPVREpgContainer::QueueDeleteEpg(const std::shared_ptr<CPVREpg>& epg,
+                                      const std::shared_ptr<CPVREpgDatabase>& database)
 {
   if (!epg || epg->EpgID() < 0)
     return false;
-
-  const std::shared_ptr<CPVREpgDatabase> database = GetEpgDatabase();
-  if (!database)
-  {
-    CLog::LogF(LOGERROR, "No EPG database");
-    return false;
-  }
 
   std::shared_ptr<CPVREpg> epgToDelete;
   {

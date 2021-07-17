@@ -11,6 +11,7 @@
 #include "VideoLayerBridge.h"
 #include "drm/DRMUtils.h"
 #include "threads/CriticalSection.h"
+#include "threads/SystemClock.h"
 #include "windowing/WinSystem.h"
 
 #include "platform/linux/input/LibInputHandler.h"
@@ -67,6 +68,8 @@ public:
 
 protected:
   void OnLostDevice();
+
+  std::unique_ptr<CVideoSync> GetVideoSync(void* clock) override;
 
   std::shared_ptr<CDRMUtils> m_DRM;
   std::unique_ptr<CGBMUtils> m_GBM;

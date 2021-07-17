@@ -10,16 +10,11 @@
 
 #include "IDirectory.h"
 #include "SortFileItem.h"
-#include "addons/IAddon.h"
-#include "threads/CriticalSection.h"
+#include "interfaces/generic/RunningScriptsHandler.h"
 #include "threads/Event.h"
-#include "threads/Thread.h"
 
 #include <atomic>
-#include <map>
 #include <string>
-
-#include "PlatformDefs.h"
 
 class CURL;
 class CFileItem;
@@ -28,7 +23,7 @@ class CFileItemList;
 namespace XFILE
 {
 
-class CPluginDirectory : public IDirectory
+class CPluginDirectory : public IDirectory, public CRunningScriptsHandler<CPluginDirectory>
 {
 public:
   CPluginDirectory();
@@ -39,6 +34,13 @@ public:
   float GetProgress() const override;
   void CancelDirectory() override;
   static bool RunScriptWithParams(const std::string& strPath, bool resume);
+
+  /*! \brief Get a reproducible CFileItem by trying to recursively resolve the plugin paths
+  up to a maximum allowed limit. If no plugin paths exist it will be ignored.
+  \param resultItem the CFileItem with plugin paths to be resolved.
+  \return false if the plugin path cannot be resolved, true otherwise.
+  */
+  static bool GetResolvedPluginResult(CFileItem& resultItem);
   static bool GetPluginResult(const std::string& strPath, CFileItem &resultItem, bool resume);
 
   /*! \brief Check whether a plugin supports media library scanning.
@@ -68,37 +70,19 @@ public:
   static void SetResolvedUrl(int handle, bool success, const CFileItem* resultItem);
   static void SetLabel2(int handle, const std::string& ident);
 
+protected:
+  // implementations of CRunningScriptsHandler / CScriptRunner
+  bool IsSuccessful() const override { return m_success; }
+  bool IsCancelled() const override { return m_cancelled; }
+
 private:
-  ADDON::AddonPtr m_addon;
-  bool StartScript(const std::string& strPath, bool retrievingDir, bool resume);
-  bool WaitOnScriptResult(const std::string &scriptPath, int scriptId, const std::string &scriptName, bool retrievingDir);
-
-  static std::map<int,CPluginDirectory*> globalHandles;
-  static int getNewHandle(CPluginDirectory *cp);
-  static void reuseHandle(int handle, CPluginDirectory* cp);
-
-  static void removeHandle(int handle);
-  static CPluginDirectory *dirFromHandle(int handle);
-  static CCriticalSection m_handleLock;
-  static int handleCounter;
+  bool StartScript(const std::string& strPath, bool resume);
 
   CFileItemList* m_listItems;
-  CFileItem*     m_fileResult;
-  CEvent         m_fetchComplete;
+  CFileItem* m_fileResult;
 
   std::atomic<bool> m_cancelled;
-  bool          m_success = false;      // set by script in EndOfDirectory
-  int    m_totalItems = 0;   // set by script in AddDirectoryItem
-
-  class CScriptObserver : public CThread
-  {
-  public:
-    CScriptObserver(int scriptId, CEvent &event);
-    void Abort();
-  protected:
-    void Process() override;
-    int m_scriptId;
-    CEvent &m_event;
-  };
+  bool m_success = false; // set by script in EndOfDirectory
+  int m_totalItems = 0; // set by script in AddDirectoryItem
 };
 }

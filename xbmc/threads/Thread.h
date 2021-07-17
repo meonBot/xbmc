@@ -36,13 +36,22 @@ public:
   CThread(IRunnable* pRunnable, const char* ThreadName);
   virtual ~CThread();
   void Create(bool bAutoDelete = false);
-  void Sleep(unsigned int milliseconds);
+
+  template<typename Rep, typename Period>
+  void Sleep(std::chrono::duration<Rep, Period> duration)
+  {
+    if (duration > std::chrono::milliseconds(10) && IsCurrentThread())
+      m_StopEvent.Wait(duration);
+    else
+      std::this_thread::sleep_for(duration);
+  }
+
   bool IsAutoDelete() const;
   virtual void StopThread(bool bWait = true);
   bool IsRunning() const;
 
   bool IsCurrentThread() const;
-  bool Join(unsigned int milliseconds);
+  bool Join(std::chrono::milliseconds duration);
 
   inline static const std::thread::id GetCurrentThreadId()
   {
@@ -62,8 +71,6 @@ public:
   int GetPriority(void);
   bool SetPriority(const int iPriority);
 
-  float GetRelativeUsage();  // returns the relative cpu usage of this thread since last call
-  int64_t GetAbsoluteUsage();
   // -----------------------------------------------------------------------------------
 
   static CThread* GetCurrentThread();
@@ -84,10 +91,13 @@ protected:
    *  stop is called on the thread the wait will return with a response
    *  indicating what happened.
    */
-  inline WaitResponse AbortableWait(CEvent& event, int timeoutMillis = -1 /* indicates wait forever*/)
+  inline WaitResponse AbortableWait(CEvent& event,
+                                    std::chrono::milliseconds duration =
+                                        std::chrono::milliseconds(-1) /* indicates wait forever*/)
   {
     XbmcThreads::CEventGroup group{&event, &m_StopEvent};
-    CEvent* result = timeoutMillis < 0 ? group.wait() : group.wait(timeoutMillis);
+    CEvent* result =
+        duration < std::chrono::milliseconds::zero() ? group.wait() : group.wait(duration);
     return  result == &event ? WAIT_SIGNALED :
       (result == NULL ? WAIT_TIMEDOUT : WAIT_INTERRUPTED);
   }
@@ -108,10 +118,6 @@ private:
   CEvent m_StartEvent;
   CCriticalSection m_CriticalSection;
   IRunnable* m_pRunnable;
-
-  uint64_t m_iLastUsage = 0;
-  uint64_t m_iLastTime = 0;
-  float m_fLastUsage = 0.0f;
 
   std::string m_ThreadName;
   std::thread* m_thread = nullptr;

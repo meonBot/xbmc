@@ -18,6 +18,7 @@
 
 #include "platform/win32/CharsetConverter.h"
 #include "platform/win32/WIN32Util.h"
+#include "platform/win32/network/WSDiscoveryWin32.h"
 
 #include <Windows.h>
 #include <Winnetwk.h>
@@ -50,6 +51,7 @@ static inline bool worthTryToConnect(const DWORD lastErr)
 */
 static bool localGetNetworkResources(struct _NETRESOURCEW* basePathToScanPtr, const std::string& urlPrefixForItems, CFileItemList& items, bool getShares);
 static bool localGetShares(const std::wstring& serverNameToScan, const std::string& urlPrefixForItems, CFileItemList& items);
+static bool localGetServers(const std::string& urlPrefixForItems, CFileItemList& items);
 
 // check for empty string, remove trailing slash if any, convert to win32 form
 inline static std::wstring prepareWin32SMBDirectoryName(const CURL& url)
@@ -225,7 +227,8 @@ bool CWin32SMBDirectory::RealCreate(const CURL& url, bool tryToConnect)
   {
     DWORD dirAttrs = GetFileAttributesW(nameW.c_str());
     if (dirAttrs == INVALID_FILE_ATTRIBUTES || !SetFileAttributesW(nameW.c_str(), dirAttrs | FILE_ATTRIBUTE_HIDDEN))
-      CLog::LogF(LOGWARNING, "Can't set hidden attribute for newly created directory \"%s\"", url.Get().c_str());
+      CLog::LogF(LOGWARNING, "Can't set hidden attribute for newly created directory \"{}\"",
+                 url.Get());
   }
 
   return true;
@@ -354,7 +357,8 @@ bool CWin32SMBDirectory::GetNetworkResources(const CURL& basePath, CFileItemList
   std::wstring remoteName;
   if (!basePathStr.empty() && !g_charsetConverter.utf8ToW("\\\\" + basePath.GetHostName(), remoteName, false, false, true))
   {
-    CLog::LogF(LOGERROR, "can't convert host name \"%s\" to wide character form", basePath.GetHostName().c_str());
+    CLog::LogF(LOGERROR, "can't convert host name \"{}\" to wide character form",
+               basePath.GetHostName());
     return false;
   }
 
@@ -392,9 +396,18 @@ static bool localGetNetworkResources(struct _NETRESOURCEW* basePathToScanPtr, co
     if (localGetShares(basePathToScanPtr->lpRemoteName, urlPrefixForItems, items))
       return true;
 
-    CLog::LogF(LOGINFO,
-               "Can't read shares for \"%ls\" by localGetShares(), fallback to standard method",
+    CLog::LogF(LOGWARNING,
+               "Can't read shares for \"{}\" by localGetShares(), fallback to old method",
                FromW(basePathToScanPtr->lpRemoteName));
+  }
+
+  // Get servers using WS-Discovery protocol
+  if (!getShares)
+  {
+    if (localGetServers(urlPrefixForItems, items))
+      return true;
+
+    CLog::LogF(LOGWARNING, "Can't locate servers by localGetServers(), fallback to old method");
   }
 
   HANDLE netEnum;
@@ -407,12 +420,13 @@ static bool localGetNetworkResources(struct _NETRESOURCEW* basePathToScanPtr, co
       std::wstring providerName;
       if (basePathToScanPtr->lpProvider && basePathToScanPtr->lpProvider[0] != 0)
         providerName.assign(L" (provider \"").append(basePathToScanPtr->lpProvider).append(L"\")");
-      CLog::LogF(LOGINFO, "Can't open network enumeration for \"%ls\"%ls. Error: %lu",
+      CLog::LogF(LOGINFO, "Can't open network enumeration for \"{}\"{}. Error: {}",
                  FromW(basePathToScanPtr->lpRemoteName), FromW(providerName),
                  static_cast<unsigned long>(result));
     }
     else
-      CLog::LogF(LOGERROR, "Can't open network enumeration for network root. Error: %lu", static_cast<unsigned long>(result));
+      CLog::LogF(LOGERROR, "Can't open network enumeration for network root. Error: {}",
+                 static_cast<unsigned long>(result));
 
     return false;
   }
@@ -422,15 +436,16 @@ static bool localGetNetworkResources(struct _NETRESOURCEW* basePathToScanPtr, co
   do
   {
     DWORD resCount = -1;
-    DWORD bufSize = buf.size();
-    result = WNetEnumResourceW(netEnum, &resCount, buf.get(), &bufSize);
+    size_t bufSize = buf.size();
+    result = WNetEnumResourceW(netEnum, &resCount, buf.get(), reinterpret_cast<LPDWORD>(&bufSize));
     if (result == NO_ERROR)
     {
       if (bufSize > buf.size())
       { // buffer is too small
         buf.allocate(bufSize); // discard buffer content and extend the buffer
         bufSize = buf.size();
-        result = WNetEnumResourceW(netEnum, &resCount, buf.get(), &bufSize);
+        result =
+            WNetEnumResourceW(netEnum, &resCount, buf.get(), reinterpret_cast<LPDWORD>(&bufSize));
         if (result != NO_ERROR || bufSize > buf.size())
           errorFlag = true; // hardly ever happens
       }
@@ -457,11 +472,12 @@ static bool localGetNetworkResources(struct _NETRESOURCEW* basePathToScanPtr, co
               }
               else
                 CLog::LogF(LOGERROR,
-                            "Can't convert server wide string name \"%ls\" to UTF-8 encoding",
-                            FromW(remoteName.substr(2)));
+                           "Can't convert server wide string name \"{}\" to UTF-8 encoding",
+                           FromW(remoteName.substr(2)));
             }
             else
-              CLog::LogF(LOGERROR, "Skipping server name \"%ls\" without '\\' prefix", FromW(remoteName));
+              CLog::LogF(LOGERROR, "Skipping server name \"{}\" without '\\' prefix",
+                         FromW(remoteName));
           }
           else
             CLog::LogF(LOGERROR, "Skipping server with empty remote name");
@@ -495,19 +511,19 @@ static bool localGetNetworkResources(struct _NETRESOURCEW* basePathToScanPtr, co
                 {
                   CLog::LogF(
                       LOGERROR,
-                      "Can't convert server and share wide string name \"%ls\" to UTF-8 encoding",
+                      "Can't convert server and share wide string name \"{}\" to UTF-8 encoding",
                       FromW(serverShareName.substr(slashPos + 1)));
                 }
               }
               else
               {
-                CLog::LogF(LOGERROR, "Can't find name of share in remote name \"%ls\"",
-                            FromW(serverShareName));
+                CLog::LogF(LOGERROR, "Can't find name of share in remote name \"{}\"",
+                           FromW(serverShareName));
               }
             }
             else
             {
-              CLog::LogF(LOGERROR, "Skipping name \"%ls\" without '\\' prefix",
+              CLog::LogF(LOGERROR, "Skipping name \"{}\" without '\\' prefix",
                          FromW(serverShareName));
             }
           }
@@ -523,12 +539,12 @@ static bool localGetNetworkResources(struct _NETRESOURCEW* basePathToScanPtr, co
           {
             if (!localGetNetworkResources(&curResource, urlPrefixForItems, items, false))
             {
-              CLog::LogF(LOGINFO, "Can't get servers from \"%ls\", skipping",
+              CLog::LogF(LOGINFO, "Can't get servers from \"{}\", skipping",
                          FromW(curResource.lpRemoteName));
             }
           }
           else
-            CLog::Log(LOGERROR, "%s: Skipping container with empty remote name", __FUNCTION__);
+            CLog::Log(LOGERROR, "{}: Skipping container with empty remote name", __FUNCTION__);
         }
       }
     }
@@ -542,12 +558,12 @@ static bool localGetNetworkResources(struct _NETRESOURCEW* basePathToScanPtr, co
     {
       if (errorFlag)
       {
-        CLog::LogF(LOGERROR, "Error loading content for \"%ls\"",
+        CLog::LogF(LOGERROR, "Error loading content for \"{}\"",
                    FromW(basePathToScanPtr->lpRemoteName));
       }
       else
       {
-        CLog::LogF(LOGERROR, "Error (%lu) loading content for \"%ls\"",
+        CLog::LogF(LOGERROR, "Error ({}) loading content for \"{}\"",
                    static_cast<unsigned long>(result), FromW(basePathToScanPtr->lpRemoteName));
       }
     }
@@ -556,7 +572,7 @@ static bool localGetNetworkResources(struct _NETRESOURCEW* basePathToScanPtr, co
       if (errorFlag)
         CLog::LogF(LOGERROR, "Error loading content of network root");
       else
-        CLog::LogF(LOGERROR, "Error (%lu) loading content of network root", (unsigned long)result);
+        CLog::LogF(LOGERROR, "Error ({}) loading content of network root", (unsigned long)result);
     }
     return false;
   }
@@ -618,6 +634,32 @@ static bool localGetShares(const std::wstring& serverNameToScan, const std::stri
   return true;
 }
 
+// Get servers using WS-Discovery protocol
+static bool localGetServers(const std::string& urlPrefixForItems, CFileItemList& items)
+{
+  auto wsd = CWSDiscoverySupport::Get();
+
+  // Get servers immediately from WSD daemon process
+  if (wsd && wsd->IsInitialized() && wsd->ThereAreServers())
+  {
+    for (const auto& ip : wsd->GetServersIPs())
+    {
+      std::wstring hostname = wsd->ResolveHostName(ip);
+      std::string shareNameUtf8;
+      if (g_charsetConverter.wToUTF8(hostname, shareNameUtf8, true) && !shareNameUtf8.empty())
+      {
+        CFileItemPtr pItem = std::make_shared<CFileItem>(shareNameUtf8);
+        pItem->SetPath(urlPrefixForItems + shareNameUtf8 + '/');
+        pItem->m_bIsFolder = true;
+        items.Add(pItem);
+      }
+    }
+    return true;
+  }
+
+  return false;
+}
+
 bool CWin32SMBDirectory::ConnectAndAuthenticate(CURL& url, bool allowPromptForCredential /*= false*/)
 {
   assert(url.IsProtocol("smb"));
@@ -631,7 +673,7 @@ bool CWin32SMBDirectory::ConnectAndAuthenticate(CURL& url, bool allowPromptForCr
   std::wstring serverNameW;
   if (!g_charsetConverter.utf8ToW(url.GetHostName(), serverNameW, false, false, true))
   {
-    CLog::LogF(LOGERROR, "Can't convert server name \"%s\" to wide string", url.GetHostName().c_str());
+    CLog::LogF(LOGERROR, "Can't convert server name \"{}\" to wide string", url.GetHostName());
     return false;
   }
   serverNameW = L"\\\\" + serverNameW;
@@ -643,7 +685,7 @@ bool CWin32SMBDirectory::ConnectAndAuthenticate(CURL& url, bool allowPromptForCr
     serverShareName = "\\\\" + url.GetHostName() + "\\" + url.GetShareName();
     if (!g_charsetConverter.utf8ToW(serverShareName, serverShareNameW, false, false, true))
     {
-      CLog::LogF(LOGERROR, "Can't convert share name \"%s\" to wide string", serverShareName.c_str());
+      CLog::LogF(LOGERROR, "Can't convert share name \"{}\" to wide string", serverShareName);
       return false;
     }
   }
@@ -656,13 +698,13 @@ bool CWin32SMBDirectory::ConnectAndAuthenticate(CURL& url, bool allowPromptForCr
   std::wstring usernameW;
   if (!url.GetUserName().empty() && !g_charsetConverter.utf8ToW(url.GetUserName(), usernameW, false, false, true))
   {
-    CLog::LogF(LOGERROR, "Can't convert username \"%s\" to wide string", url.GetUserName().c_str());
+    CLog::LogF(LOGERROR, "Can't convert username \"{}\" to wide string", url.GetUserName());
     return false;
   }
   std::wstring domainW;
   if (!url.GetDomain().empty() && !g_charsetConverter.utf8ToW(url.GetDomain(), domainW, false, false, true))
   {
-    CLog::LogF(LOGERROR, "Can't convert domain name \"%s\" to wide string", url.GetDomain().c_str());
+    CLog::LogF(LOGERROR, "Can't convert domain name \"{}\" to wide string", url.GetDomain());
     return false;
   }
   if (!domainW.empty())
@@ -686,13 +728,23 @@ bool CWin32SMBDirectory::ConnectAndAuthenticate(CURL& url, bool allowPromptForCr
   connInfo.dwType = RESOURCETYPE_ANY;
   connInfo.lpRemoteName = (LPWSTR)serverShareNameW.c_str();
   DWORD connRes;
+
   for (int i = 0; i < 3; i++) // make up to three attempts to connect
   {
+    // try with provided user/password or NULL user/password (NULL = current Windows user/password)
     connRes = WNetAddConnection2W(&connInfo, passwordW.empty() ? NULL : (LPWSTR)passwordW.c_str(),
                                   usernameW.empty() ? NULL : (LPWSTR)usernameW.c_str(), CONNECT_TEMPORARY);
+
+    // try with passwordless access (guest user and no password)
+    if (usernameW.empty() && passwordW.empty() &&
+        (connRes == ERROR_ACCESS_DENIED || connRes == ERROR_BAD_USERNAME ||
+         connRes == ERROR_INVALID_PASSWORD || connRes == ERROR_LOGON_FAILURE ||
+         connRes == ERROR_LOGON_TYPE_NOT_GRANTED || connRes == ERROR_LOGON_NOT_GRANTED))
+      connRes = WNetAddConnection2W(&connInfo, L"", L"guest", CONNECT_TEMPORARY);
+
     if (connRes == NO_ERROR)
     {
-      CLog::LogF(LOGDEBUG, "Connected to \"%s\" %s", serverShareName.c_str(), loginDescr.c_str());
+      CLog::LogF(LOGDEBUG, "Connected to \"{}\" {}", serverShareName, loginDescr);
       return true;
     }
 
@@ -700,9 +752,13 @@ bool CWin32SMBDirectory::ConnectAndAuthenticate(CURL& url, bool allowPromptForCr
         connRes == ERROR_LOGON_FAILURE || connRes == ERROR_LOGON_TYPE_NOT_GRANTED || connRes == ERROR_LOGON_NOT_GRANTED)
     {
       if (connRes == ERROR_ACCESS_DENIED)
-        CLog::LogF(LOGERROR, "Doesn't have permissions to access \"%s\" %s", serverShareName.c_str(), loginDescr.c_str());
+        CLog::LogF(LOGERROR, "Doesn't have permissions to access \"{}\" {}", serverShareName,
+                   loginDescr);
       else
-        CLog::LogF(LOGERROR, "Username/password combination was not accepted by \"%s\" when trying to connect %s", serverShareName.c_str(), loginDescr.c_str());
+        CLog::LogF(
+            LOGERROR,
+            "Username/password combination was not accepted by \"{}\" when trying to connect {}",
+            serverShareName, loginDescr);
       if (allowPromptForCredential)
         RequireAuthentication(url);
 
@@ -710,20 +766,24 @@ bool CWin32SMBDirectory::ConnectAndAuthenticate(CURL& url, bool allowPromptForCr
     }
     else if (connRes == ERROR_BAD_NET_NAME || connRes == ERROR_NO_NET_OR_BAD_PATH || connRes == ERROR_NO_NETWORK)
     {
-      CLog::LogF(LOGERROR, "Can't find \"%s\"", serverShareName.c_str());
+      CLog::LogF(LOGERROR, "Can't find \"{}\"", serverShareName);
       return false; // don't try any more
     }
     else if (connRes == ERROR_BUSY)
-      CLog::LogF(LOGINFO, "Network is busy for \"%s\"", serverShareName.c_str());
+      CLog::LogF(LOGINFO, "Network is busy for \"{}\"", serverShareName);
     else if (connRes == ERROR_SESSION_CREDENTIAL_CONFLICT)
     {
-      CLog::LogF(LOGWARNING, "Can't connect to \"%s\" %s because of conflict of credential. Will try to close current connections.", serverShareName.c_str(), loginDescr.c_str());
+      CLog::LogF(LOGWARNING,
+                 "Can't connect to \"{}\" {} because of conflict of credential. Will try to close "
+                 "current connections.",
+                 serverShareName, loginDescr);
       WNetCancelConnection2W((LPWSTR)serverShareNameW.c_str(), 0, FALSE);
       WNetCancelConnection2W((LPWSTR)(serverNameW + L"\\IPC$").c_str(), 0, FALSE);
       WNetCancelConnection2W((LPWSTR)serverNameW.c_str(), 0, FALSE);
     }
   }
 
-  CLog::LogF(LOGWARNING, "Can't connect to \"%s\" %s. Error code: %lu", serverShareName.c_str(), loginDescr.c_str(), (unsigned long)connRes);
+  CLog::LogF(LOGWARNING, "Can't connect to \"{}\" {}. Error code: {}", serverShareName, loginDescr,
+             (unsigned long)connRes);
   return false;
 }

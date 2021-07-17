@@ -3691,6 +3691,15 @@ const infomap musicplayer[] =    {{ "title",            MUSICPLAYER_TITLE },
 ///     @skinning_v19 **[New Infolabel]** \link VideoPlayer_TvShowDBID `VideoPlayer.TvShowDBID`\endlink
 ///     <p>
 ///   }
+///   \table_row3{   <b>`VideoPlayer.AudioStreamCount`</b>,
+///                  \anchor VideoPlayer_AudioStreamCount
+///                  _integer_,
+///     @return The number of audio streams of the currently playing video.
+///     @note If the video contains no audio streams it returns 0.
+///     <p><hr>
+///     @skinning_v20 **[New Infolabel]** \link VideoPlayer_AudioStreamCount `VideoPlayer.AudioStreamCount`\endlink
+///     <p>
+///   }
 /// \table_end
 ///
 /// -----------------------------------------------------------------------------
@@ -3763,6 +3772,7 @@ const infomap videoplayer[] =    {{ "title",            VIDEOPLAYER_TITLE },
                                   { "dbid",             VIDEOPLAYER_DBID },
                                   { "uniqueid",         VIDEOPLAYER_UNIQUEID },
                                   { "tvshowdbid",       VIDEOPLAYER_TVSHOWDBID },
+                                  { "audiostreamcount", VIDEOPLAYER_AUDIOSTREAMCOUNT },
 };
 
 /// \page modules__infolabels_boolean_conditions
@@ -7056,6 +7066,12 @@ const infomap skin_labels[] =    {{ "currenttheme",      SKIN_THEME },
 ///     @skinning_v17 **[New Infolabel]** \link Window_Property_AddonId `Window.Property(Addon.ID)`\endlink
 ///     <p>
 ///   }
+///   \table_row3{   <b>`Window.Property(IsRadio)`</b>,
+///                  \anchor Window_Property_IsRadio
+///                  _string_,
+///     @return "true" if the window is a radio window\, empty string otherwise (for use in the PVR windows).
+///     <p>
+///   }
 ///   \table_row3{   <b>`Window([window]).Property(key)`</b>,
 ///                  \anchor Window_Window_Property_key
 ///                  _string_,
@@ -9548,7 +9564,7 @@ void CGUIInfoManager::SplitInfoString(const std::string &infoString, std::vector
     else if (infoString[i] == ')')
     {
       if (!parentheses)
-        CLog::Log(LOGERROR, "unmatched parentheses in %s", infoString.c_str());
+        CLog::Log(LOGERROR, "unmatched parentheses in {}", infoString);
       else if (!--parentheses)
         continue;
     }
@@ -9570,7 +9586,7 @@ void CGUIInfoManager::SplitInfoString(const std::string &infoString, std::vector
   }
 
   if (parentheses)
-    CLog::Log(LOGERROR, "unmatched parentheses in %s", infoString.c_str());
+    CLog::Log(LOGERROR, "unmatched parentheses in {}", infoString);
 
   if (!property.empty())
   {
@@ -10686,7 +10702,8 @@ void CGUIInfoManager::Clear()
 
   // log which ones are used - they should all be gone by now
   for (INFOBOOLTYPE::const_iterator i = m_bools.begin(); i != m_bools.end(); ++i)
-    CLog::Log(LOGDEBUG, "Infobool '%s' still used by %u instances", (*i)->GetExpression().c_str(), (unsigned int) i->use_count());
+    CLog::Log(LOGDEBUG, "Infobool '{}' still used by {} instances", (*i)->GetExpression(),
+              (unsigned int)i->use_count());
 }
 
 void CGUIInfoManager::UpdateAVInfo()
@@ -10715,7 +10732,7 @@ int CGUIInfoManager::AddMultiInfo(const CGUIInfo &info)
   m_multiInfo.emplace_back(info);
   int id = static_cast<int>(m_multiInfo.size()) + MULTI_INFO_START - 1;
   if (id > MULTI_INFO_END)
-    CLog::Log(LOGERROR, "%s - too many multiinfo bool/labels in this skin", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} - too many multiinfo bool/labels in this skin", __FUNCTION__);
   return id;
 }
 
@@ -10811,7 +10828,7 @@ std::string CGUIInfoManager::GetMultiInfoItemLabel(const CFileItem *item, int co
           return StringUtils::SizeToString(item->m_dwSize);
         break;
       case LISTITEM_PROGRAM_COUNT:
-        return StringUtils::Format("%i", item->m_iprogramCount);
+        return std::to_string(item->m_iprogramCount);
       case LISTITEM_ACTUAL_ICON:
         return item->GetArt("icon");
       case LISTITEM_ICON:

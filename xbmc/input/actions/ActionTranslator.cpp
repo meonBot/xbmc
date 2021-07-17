@@ -53,6 +53,7 @@ static const std::map<ActionName, ActionID> ActionMappings = {
     {"browsesubtitle", ACTION_BROWSE_SUBTITLE},
     {"cyclesubtitle", ACTION_CYCLE_SUBTITLE},
     {"playerdebug", ACTION_PLAYER_DEBUG},
+    {"playerdebugvideo", ACTION_PLAYER_DEBUG_VIDEO},
     {"codecinfo", ACTION_PLAYER_PROCESS_INFO},
     {"playerprocessinfo", ACTION_PLAYER_PROCESS_INFO},
     {"playerprogramselect", ACTION_PLAYER_PROGRAM_SELECT},
@@ -302,7 +303,7 @@ bool CActionTranslator::TranslateString(std::string strAction, unsigned int& act
 
   if (actionId == ACTION_NONE)
   {
-    CLog::Log(LOGERROR, "Keymapping error: no such action '%s' defined", strAction.c_str());
+    CLog::Log(LOGERROR, "Keymapping error: no such action '{}' defined", strAction);
     return false;
   }
 

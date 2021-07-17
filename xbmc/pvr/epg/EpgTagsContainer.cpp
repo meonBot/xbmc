@@ -96,7 +96,7 @@ bool FixOverlap(const std::shared_ptr<CPVREpgInfoTag>& previousTag,
   if (previousTag->EndAsUTC() >= currentTag->EndAsUTC())
   {
     // delete the current tag. it's completely overlapped
-    CLog::LogF(LOGWARNING,
+    CLog::LogF(LOGDEBUG,
                "Erasing completely overlapped event from EPG timeline "
                "({} - {} - {} - {}) "
                "({} - {} - {} - {}).",
@@ -111,7 +111,7 @@ bool FixOverlap(const std::shared_ptr<CPVREpgInfoTag>& previousTag,
   else if (previousTag->EndAsUTC() > currentTag->StartAsUTC())
   {
     // fix the end time of the predecessor of the event
-    CLog::LogF(LOGWARNING,
+    CLog::LogF(LOGDEBUG,
                "Fixing partly overlapped event in EPG timeline "
                "({} - {} - {} - {}) "
                "({} - {} - {} - {}).",
@@ -600,7 +600,7 @@ CDateTime CPVREpgTagsContainer::GetLastEndTime() const
   if (m_database)
   {
     const CDateTime dbResult = m_database->GetLastEndTime(m_iEpgID);
-    if (result.IsValid() || (dbResult.IsValid() && dbResult > result))
+    if (!result.IsValid() || (dbResult.IsValid() && dbResult > result))
       result = dbResult;
   }
 

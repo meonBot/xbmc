@@ -1,20 +1,33 @@
 # Kodi Media Center language file
 # Addon Name: Estuary
 # Addon id: skin.estuary
-# Addon Provider: phil65, Ichabod Fletchman
+# Addon Provider: Team Kodi
 msgid ""
 msgstr ""
 "Project-Id-Version: KODI Main\n"
 "Report-Msgid-Bugs-To: https://github.com/xbmc/xbmc/issues/\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Kodi Translation Team\n"
-"Language-Team: Spanish (Spain) (http://www.transifex.com/projects/p/kodi-main/language/es_ES/)\n"
+"PO-Revision-Date: 2021-07-05 22:17+0000\n"
+"Last-Translator: Christian Gade <gade@kodi.tv>\n"
+"Language-Team: Spanish (Spain) <https://kodi.weblate.cloud/projects/kodi-add-ons-skins/skin-estuary/es_es/>\n"
+"Language: es_es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: es_ES\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.7.1\n"
+
+msgctxt "Addon Summary"
+msgid "Estuary skin by phil65. (Kodi's default skin)"
+msgstr "Skin Estuary, creado por phil65 and Piers (skin por defecto de Kodi)."
+
+msgctxt "Addon Description"
+msgid "Estuary is the default skin for Kodi 17.0 and above. It attempts to be easy for first time Kodi users to understand and use."
+msgstr "Estuary es el skin por defecto para Kodi 17.0 o superior. Su objetivo es la facilidad de comprensión y uso para usuarios primerizos de Kodi."
+
+msgctxt "Addon Disclaimer"
+msgid "Estuary is the default skin for Kodi, removing it may cause issues"
+msgstr "Estuary es el skin por defecto de Kodi. Desinstalarlo puede causar problemas."
 
 msgctxt "#31000"
 msgid "Now playing"
@@ -76,10 +89,12 @@ msgctxt "#31014"
 msgid "Unplayed albums"
 msgstr "Álbumes sin reproducir"
 
+#. home screen recordings widget: recent tv / radio recordings
 msgctxt "#31015"
 msgid "Recent recordings"
 msgstr "Grabaciones recientes"
 
+#. home screen channel widget: recently played tv channels. (please note that in some non-english languages #31018 and #31016 might not be equal)
 msgctxt "#31016"
 msgid "Recently played channels"
 msgstr "Canales reproducidos recientemente"
@@ -88,6 +103,7 @@ msgctxt "#31017"
 msgid "Rated"
 msgstr "Puntuados"
 
+#. home screen channel widget: recently played radio channels. (please note that in some non-english languages #31018 and #31016 might not be equal)
 msgctxt "#31018"
 msgid "Recently played channels"
 msgstr "Canales reproducidos recientemente"
@@ -298,7 +314,7 @@ msgstr "Reparto no disponible"
 
 msgctxt "#31080"
 msgid "Ends at"
-msgstr "Finaliza a las "
+msgstr "Finaliza a las"
 
 msgctxt "#31082"
 msgid "Lyrics add-on"
@@ -340,18 +356,22 @@ msgctxt "#31098"
 msgid "Select your Kodi user profile[CR]to login and continue"
 msgstr "Seleccione su perfil de usuario de Kodi[CR]para iniciar sesión y continuar"
 
+#. viewtype name
 msgctxt "#31099"
 msgid "IconWall"
 msgstr "Muro de Iconos"
 
+#. viewtype name
 msgctxt "#31100"
 msgid "Shift"
 msgstr "Mays."
 
+#. viewtype name
 msgctxt "#31101"
 msgid "InfoWall"
 msgstr "Muro de información"
 
+#. viewtype name
 msgctxt "#31102"
 msgid "Wall"
 msgstr "Muro"
@@ -372,6 +392,7 @@ msgctxt "#31106"
 msgid "Teletext"
 msgstr "Teletexto"
 
+#. viewtype name
 msgctxt "#31107"
 msgid "WideList"
 msgstr "Lista amplia"
@@ -395,6 +416,10 @@ msgstr "Buscar en la colección local"
 msgctxt "#31114"
 msgid "Search YouTube"
 msgstr "Buscar en YouTube"
+
+msgctxt "#31115"
+msgid "Toggle subtitle"
+msgstr "Cambiar subtítulos"
 
 msgctxt "#31116"
 msgid "Remove this main menu item"
@@ -502,7 +527,7 @@ msgstr "Velocidad de reproducción"
 
 msgctxt "#31143"
 msgid "You did not set up PVR yet. In order to use PVR, choose a PVR client addon and configure it. Please visit http://kodi.wiki/view/PVR to learn more."
-msgstr "Todavía no se ha configurado el PVR. Para usar PVR, elija un Add-on cliente de PVR y configurelo. Por favor, visite http://kodi.wiki/view/PVR para saber mas."
+msgstr "Todavía no se ha configurado el PVR. Para usar PVR, elija un Add-on cliente de PVR y configúrelo. Por favor, visite http://kodi.wiki/view/PVR para obtener más información."
 
 msgctxt "#31144"
 msgid "Enter add-on browser"
@@ -584,26 +609,32 @@ msgctxt "#31163"
 msgid "Show Fanart background"
 msgstr "Mostrar fondo fanart"
 
+#. Choose profile identifier
 msgctxt "#31164"
 msgid "Choose kind of profile identification"
 msgstr "Elegir el tipo de identificación de perfil"
 
+#. Label for the kind of profile identification
 msgctxt "#31165"
 msgid "Profile name"
 msgstr "Nombre de perfil"
 
+#. Label for the kind of profile identification
 msgctxt "#31166"
 msgid "Profile avatar"
 msgstr "Avatar de perfil"
 
+#. Label of a setting
 msgctxt "#31167"
 msgid "Animate background"
 msgstr "Animar fondo"
 
+#. Label of a setting
 msgctxt "#31168"
 msgid "Show posters instead of thumbs for musicvideos"
 msgstr "Mostrar carteles en lugar de miniaturas para vídeos musicales"
 
+#. Description label for skin settings area
 msgctxt "#31169"
 msgid "Artwork related settings."
 msgstr "Ajustes relacionado con ilustraciones"

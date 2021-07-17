@@ -14,6 +14,7 @@
 #include "GUIInfoManager.h"
 #include "GUIPassword.h"
 #include "GUITexture.h"
+#include "WindowIDs.h"
 #include "addons/Skin.h"
 #include "addons/gui/GUIWindowAddonBrowser.h"
 #include "addons/interfaces/gui/Window.h"
@@ -460,7 +461,7 @@ bool CGUIWindowManager::SendMessage(int message, int senderID, int destID, int p
 bool CGUIWindowManager::SendMessage(CGUIMessage& message)
 {
   bool handled = false;
-//  CLog::Log(LOGDEBUG,"SendMessage: mess=%d send=%d control=%d param1=%d", message.GetMessage(), message.GetSenderId(), message.GetControlId(), message.GetParam1());
+  //  CLog::Log(LOGDEBUG,"SendMessage: mess={} send={} control={} param1={}", message.GetMessage(), message.GetSenderId(), message.GetControlId(), message.GetParam1());
   // Send the message to all none window targets
   for (int i = 0; i < int(m_vecMsgTargets.size()); i++)
   {
@@ -585,8 +586,10 @@ void CGUIWindowManager::Add(CGUIWindow* pWindow)
     auto it = m_mapWindows.find(id);
     if (it != m_mapWindows.end())
     {
-      CLog::Log(LOGERROR, "Error, trying to add a second window with id %u "
-                          "to the window manager", id);
+      CLog::Log(LOGERROR,
+                "Error, trying to add a second window with id {} "
+                "to the window manager",
+                id);
       return;
     }
 
@@ -633,8 +636,9 @@ void CGUIWindowManager::Remove(int id)
   }
   else
   {
-    CLog::Log(LOGWARNING, "Attempted to remove window %u "
-                          "from the window manager when it didn't exist",
+    CLog::Log(LOGWARNING,
+              "Attempted to remove window {} "
+              "from the window manager when it didn't exist",
               id);
   }
 }
@@ -769,7 +773,7 @@ void CGUIWindowManager::ActivateWindow_Internal(int iWindowID, const std::vector
   }
 
   // debug
-  CLog::Log(LOGDEBUG, "Activating window ID: %i", iWindowID);
+  CLog::Log(LOGDEBUG, "Activating window ID: {}", iWindowID);
 
   // make sure we check mediasources from home
   if (GetActiveWindow() == WINDOW_HOME)
@@ -796,7 +800,8 @@ void CGUIWindowManager::ActivateWindow_Internal(int iWindowID, const std::vector
   CGUIWindow *pNewWindow = GetWindow(iWindowID);
   if (!pNewWindow)
   { // nothing to see here - move along
-    CLog::Log(LOGERROR, "Unable to locate window with id %d.  Check skin files", iWindowID - WINDOW_HOME);
+    CLog::Log(LOGERROR, "Unable to locate window with id {}.  Check skin files",
+              iWindowID - WINDOW_HOME);
     if (IsWindowActive(WINDOW_STARTUP_ANIM))
       ActivateWindow(WINDOW_HOME);
     return ;
@@ -822,7 +827,8 @@ void CGUIWindowManager::ActivateWindow_Internal(int iWindowID, const std::vector
   // don't activate a window if there are active modal dialogs of type MODAL
   if (!force && HasModalDialog(true))
   {
-    CLog::Log(LOGINFO, "Activate of window '%i' refused because there are active modal dialogs", iWindowID);
+    CLog::Log(LOGINFO, "Activate of window '{}' refused because there are active modal dialogs",
+              iWindowID);
     CServiceBroker::GetGUI()->GetAudioManager().PlayActionSound(CAction(ACTION_ERROR));
     return;
   }
@@ -881,6 +887,66 @@ void CGUIWindowManager::CloseInternalModalDialogs(bool forceClose) const
     if (window->IsModalDialog() && !IsAddonWindow(window->GetID()) && !IsPythonWindow(window->GetID()))
       window->Close(forceClose);
   }
+}
+
+// SwitchToFullScreen() returns true if a switch is made, else returns false
+bool CGUIWindowManager::SwitchToFullScreen(bool force /* = false */)
+{
+  // don't switch if the slideshow is active
+  if (IsWindowActive(WINDOW_SLIDESHOW))
+    return false;
+
+  // if playing from the video info window, close it first!
+  if (IsModalDialogTopmost(WINDOW_DIALOG_VIDEO_INFO))
+  {
+    CGUIDialogVideoInfo* pDialog = GetWindow<CGUIDialogVideoInfo>(WINDOW_DIALOG_VIDEO_INFO);
+    if (pDialog)
+      pDialog->Close(true);
+  }
+
+  // if playing from the album info window, close it first!
+  if (IsModalDialogTopmost(WINDOW_DIALOG_MUSIC_INFO))
+  {
+    CGUIDialogVideoInfo* pDialog = GetWindow<CGUIDialogVideoInfo>(WINDOW_DIALOG_MUSIC_INFO);
+    if (pDialog)
+      pDialog->Close(true);
+  }
+
+  // if playing from the song info window, close it first!
+  if (IsModalDialogTopmost(WINDOW_DIALOG_SONG_INFO))
+  {
+    CGUIDialogVideoInfo* pDialog = GetWindow<CGUIDialogVideoInfo>(WINDOW_DIALOG_SONG_INFO);
+    if (pDialog)
+      pDialog->Close(true);
+  }
+
+  const int activeWindowID = GetActiveWindow();
+  int windowID = WINDOW_INVALID;
+
+  // See if we're playing a game
+  if (activeWindowID != WINDOW_FULLSCREEN_GAME && g_application.GetAppPlayer().IsPlayingGame())
+    windowID = WINDOW_FULLSCREEN_GAME;
+
+  // See if we're playing a video
+  else if (activeWindowID != WINDOW_FULLSCREEN_VIDEO &&
+           g_application.GetAppPlayer().IsPlayingVideo())
+    windowID = WINDOW_FULLSCREEN_VIDEO;
+
+  // See if we're playing an audio song
+  if (activeWindowID != WINDOW_VISUALISATION && g_application.GetAppPlayer().IsPlayingAudio())
+    windowID = WINDOW_VISUALISATION;
+
+  if (windowID != WINDOW_INVALID && (force || windowID != activeWindowID))
+  {
+    if (force)
+      ForceActivateWindow(windowID);
+    else
+      ActivateWindow(windowID);
+
+    return true;
+  }
+
+  return false;
 }
 
 void CGUIWindowManager::OnApplicationMessage(ThreadMessage* pMsg)
@@ -953,7 +1019,8 @@ void CGUIWindowManager::OnApplicationMessage(ThreadMessage* pMsg)
         if (pWindow)
           pWindow->OnAction(*action);
         else
-          CLog::Log(LOGWARNING, "Failed to get window with ID %i to send an action to", pMsg->param1);
+          CLog::Log(LOGWARNING, "Failed to get window with ID {} to send an action to",
+                    pMsg->param1);
       }
       delete action;
     }
@@ -1039,7 +1106,7 @@ bool CGUIWindowManager::OnAction(const CAction &action) const
   {
     // We swallow the event, so it is handled
     ret = true;
-    CLog::Log(LOGDEBUG, "Swallowing touch action %d due to inhibition on window switch", actionId);
+    CLog::Log(LOGDEBUG, "Swallowing touch action {} due to inhibition on window switch", actionId);
   }
 
   if (actionId == ACTION_GESTURE_END || actionId == ACTION_GESTURE_ABORT)
@@ -1072,7 +1139,9 @@ bool CGUIWindowManager::HandleAction(CAction const& action) const
           break;
         return false;
       }
-      CLog::Log(LOGWARNING, "CGUIWindowManager - %s - ignoring action %i, because topmost modal dialog closing animation is running",
+      CLog::Log(LOGWARNING,
+                "CGUIWindowManager - {} - ignoring action {}, because topmost modal dialog closing "
+                "animation is running",
                 __FUNCTION__, action.GetID());
       return true; // do nothing with the action until the anim is finished
     }
@@ -1675,7 +1744,8 @@ void CGUIWindowManager::CloseWindowSync(CGUIWindow *window, int nextWindowID /*=
   // Abort touch action if active
   if (m_touchGestureActive && !m_inhibitTouchGestureEvents)
   {
-    CLog::Log(LOGDEBUG, "Closing window %d with active touch gesture, sending gesture abort event", window->GetID());
+    CLog::Log(LOGDEBUG, "Closing window {} with active touch gesture, sending gesture abort event",
+              window->GetID());
     window->OnAction({ACTION_GESTURE_ABORT});
     // Don't send any mid-gesture events to next window until new touch starts
     m_inhibitTouchGestureEvents = true;

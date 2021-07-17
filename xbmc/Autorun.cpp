@@ -31,6 +31,9 @@
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
+#ifndef TARGET_WINDOWS
+#include "storage/DetectDVDType.h"
+#endif
 #include "storage/MediaManager.h"
 #include "video/VideoDatabase.h"
 #include "utils/StringUtils.h"
@@ -46,6 +49,7 @@ using namespace XFILE;
 using namespace PLAYLIST;
 using namespace MEDIA_DETECT;
 using namespace KODI::MESSAGING;
+using namespace std::chrono_literals;
 
 using KODI::MESSAGING::HELPERS::DialogResponse;
 
@@ -248,7 +252,7 @@ bool CAutorun::RunDisc(IDirectory* pDir, const std::string& strDrive, int& nAdde
             items.Sort(SortByLabel, SortOrderDescending);
             phddvdItem = pItem;
             hddvdname = URIUtils::GetFileName(items[0]->GetPath());
-            CLog::Log(LOGINFO,"HD DVD: %s", items[0]->GetPath().c_str());
+            CLog::Log(LOGINFO, "HD DVD: {}", items[0]->GetPath());
           }
         }
 
@@ -268,7 +272,7 @@ bool CAutorun::RunDisc(IDirectory* pDir, const std::string& strDrive, int& nAdde
               items.Sort(SortByLabel, SortOrderAscending);
               phddvdItem = pItem;
               hddvdname = URIUtils::GetFileName(items[0]->GetPath());
-              CLog::Log(LOGINFO,"HD DVD: %s",items[0]->GetPath().c_str());
+              CLog::Log(LOGINFO, "HD DVD: {}", items[0]->GetPath());
             }
           }
           // Find and sort *.evo files for internal playback.
@@ -322,7 +326,7 @@ bool CAutorun::RunDisc(IDirectory* pDir, const std::string& strDrive, int& nAdde
             // If no matching rule was found, VideoPlayer will be default player.
             if (hdVideoPlayer != "VideoPlayer")
             {
-              CLog::Log(LOGINFO,"HD DVD: External singlefile playback initiated: %s",hddvdname.c_str());
+              CLog::Log(LOGINFO, "HD DVD: External singlefile playback initiated: {}", hddvdname);
               g_application.PlayFile(item, hdVideoPlayer, false);
               return true;
             } else
@@ -367,7 +371,7 @@ bool CAutorun::RunDisc(IDirectory* pDir, const std::string& strDrive, int& nAdde
               && (bypassSettings))
         {
           bPlaying = true;
-          std::string strExec = StringUtils::Format("RecursiveSlideShow(%s)", pItem->GetPath().c_str());
+          std::string strExec = StringUtils::Format("RecursiveSlideShow({})", pItem->GetPath());
           CBuiltins::Execute(strExec);
           return true;
         }
@@ -443,7 +447,7 @@ bool CAutorun::RunDisc(IDirectory* pDir, const std::string& strDrive, int& nAdde
       if (!pItem->m_bIsFolder && pItem->IsPicture())
       {
         bPlaying = true;
-        std::string strExec = StringUtils::Format("RecursiveSlideShow(%s)", strDrive.c_str());
+        std::string strExec = StringUtils::Format("RecursiveSlideShow({})", strDrive);
         CBuiltins::Execute(strExec);
         break;
       }
@@ -476,17 +480,19 @@ bool CAutorun::RunDisc(IDirectory* pDir, const std::string& strDrive, int& nAdde
 
 void CAutorun::HandleAutorun()
 {
-#ifndef TARGET_WINDOWS
+#if !defined(TARGET_WINDOWS) && defined(HAS_DVD_DRIVE)
+  const CDetectDVDMedia& mediadetect = CServiceBroker::GetDetectDVDMedia();
+
   if (!m_bEnable)
   {
-    CDetectDVDMedia::m_evAutorun.Reset();
+    mediadetect.m_evAutorun.Reset();
     return ;
   }
 
-  if (CDetectDVDMedia::m_evAutorun.WaitMSec(0))
+  if (mediadetect.m_evAutorun.Wait(0ms))
   {
     ExecuteAutorun();
-    CDetectDVDMedia::m_evAutorun.Reset();
+    mediadetect.m_evAutorun.Reset();
   }
 #endif
 }

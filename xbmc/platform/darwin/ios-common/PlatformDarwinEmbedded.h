@@ -17,5 +17,8 @@ public:
 
   ~CPlatformDarwinEmbedded() override = default;
 
-  bool Init() override;
+  bool InitStageOne() override;
+  bool InitStageTwo() override;
+
+  bool SupportsUserInstalledBinaryAddons() override;
 };

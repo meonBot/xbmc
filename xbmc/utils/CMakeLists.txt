@@ -15,7 +15,6 @@ set(SOURCES ActorProtocol.cpp
             ContentUtils.cpp
             CPUInfo.cpp
             Crc32.cpp
-            CryptThreading.cpp
             DatabaseUtils.cpp
             Digest.cpp
             EndianSwap.cpp
@@ -55,8 +54,6 @@ set(SOURCES ActorProtocol.cpp
             Screenshot.cpp
             SortUtils.cpp
             Speed.cpp
-            StaticLoggerBase.cpp
-            Stopwatch.cpp
             StreamDetails.cpp
             StreamUtils.cpp
             StringUtils.cpp
@@ -92,7 +89,6 @@ set(HEADERS ActorProtocol.h
             ColorUtils.h
             ContentUtils.h
             Crc32.h
-            CryptThreading.h
             DatabaseUtils.h
             Digest.h
             EndianSwap.h
@@ -150,7 +146,6 @@ set(HEADERS ActorProtocol.h
             Screenshot.h
             SortUtils.h
             Speed.h
-            StaticLoggerBase.h
             Stopwatch.h
             StreamDetails.h
             StreamUtils.h

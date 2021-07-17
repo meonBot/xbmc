@@ -45,9 +45,9 @@ CPlatform* CPlatform::CreateInstance()
   return new CPlatformLinux();
 }
 
-bool CPlatformLinux::Init()
+bool CPlatformLinux::InitStageOne()
 {
-  if (!CPlatformPosix::Init())
+  if (!CPlatformPosix::InitStageOne())
     return false;
 
   setenv("OS", "Linux", true); // for python scripts that check the OS
@@ -90,6 +90,10 @@ bool CPlatformLinux::Init()
   {
     OPTIONALS::PulseAudioRegister();
   }
+  else if (StringUtils::EqualsNoCase(envSink, "PIPEWIRE"))
+  {
+    OPTIONALS::PipewireRegister();
+  }
   else if (StringUtils::EqualsNoCase(envSink, "SNDIO"))
   {
     OPTIONALS::SndioRegister();
@@ -103,9 +107,12 @@ bool CPlatformLinux::Init()
   {
     if (!OPTIONALS::PulseAudioRegister())
     {
-      if (!OPTIONALS::ALSARegister())
+      if (!OPTIONALS::PipewireRegister())
       {
-        OPTIONALS::SndioRegister();
+        if (!OPTIONALS::ALSARegister())
+        {
+          OPTIONALS::SndioRegister();
+        }
       }
     }
   }

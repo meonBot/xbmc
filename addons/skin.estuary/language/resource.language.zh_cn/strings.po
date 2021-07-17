@@ -1,20 +1,33 @@
 # Kodi Media Center language file
 # Addon Name: Estuary
 # Addon id: skin.estuary
-# Addon Provider: phil65, Ichabod Fletchman
+# Addon Provider: Team Kodi
 msgid ""
 msgstr ""
 "Project-Id-Version: KODI Main\n"
 "Report-Msgid-Bugs-To: https://github.com/xbmc/xbmc/issues/\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Kodi Translation Team\n"
-"Language-Team: Chinese (China) (http://www.transifex.com/projects/p/kodi-main/language/zh_CN/)\n"
+"PO-Revision-Date: 2021-07-06 04:24+0000\n"
+"Last-Translator: Meano Lee <meanocat@gmail.com>\n"
+"Language-Team: Chinese (China) <https://kodi.weblate.cloud/projects/kodi-add-ons-skins/skin-estuary/zh_cn/>\n"
+"Language: zh_cn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: zh_CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.7.1\n"
+
+msgctxt "Addon Summary"
+msgid "Estuary skin by phil65. (Kodi's default skin)"
+msgstr "phil65 开发的 Estuary 皮肤（Kodi 的默认皮肤）。"
+
+msgctxt "Addon Description"
+msgid "Estuary is the default skin for Kodi 17.0 and above. It attempts to be easy for first time Kodi users to understand and use."
+msgstr "Estuary 是 Kodi 17.0 的默认皮肤。它力求使首次使用 Kodi 的用户易于上手。"
+
+msgctxt "Addon Disclaimer"
+msgid "Estuary is the default skin for Kodi, removing it may cause issues"
+msgstr "Estuary 是 Kodi 的默认皮肤，删除它可能导致故障。"
 
 msgctxt "#31000"
 msgid "Now playing"
@@ -76,10 +89,12 @@ msgctxt "#31014"
 msgid "Unplayed albums"
 msgstr "未播专辑"
 
+#. home screen recordings widget: recent tv / radio recordings
 msgctxt "#31015"
 msgid "Recent recordings"
 msgstr "最近录像"
 
+#. home screen channel widget: recently played tv channels. (please note that in some non-english languages #31018 and #31016 might not be equal)
 msgctxt "#31016"
 msgid "Recently played channels"
 msgstr "最近播放的频道"
@@ -88,6 +103,7 @@ msgctxt "#31017"
 msgid "Rated"
 msgstr "已评分"
 
+#. home screen channel widget: recently played radio channels. (please note that in some non-english languages #31018 and #31016 might not be equal)
 msgctxt "#31018"
 msgid "Recently played channels"
 msgstr "最近播放的频道"
@@ -340,18 +356,22 @@ msgctxt "#31098"
 msgid "Select your Kodi user profile[CR]to login and continue"
 msgstr "选择 Kodi 用户配置文件[CR]登录并继续"
 
+#. viewtype name
 msgctxt "#31099"
 msgid "IconWall"
 msgstr "图标墙"
 
+#. viewtype name
 msgctxt "#31100"
 msgid "Shift"
 msgstr "平移"
 
+#. viewtype name
 msgctxt "#31101"
 msgid "InfoWall"
 msgstr "信息墙"
 
+#. viewtype name
 msgctxt "#31102"
 msgid "Wall"
 msgstr "墙"
@@ -372,6 +392,7 @@ msgctxt "#31106"
 msgid "Teletext"
 msgstr "图文字幕"
 
+#. viewtype name
 msgctxt "#31107"
 msgid "WideList"
 msgstr "宽列表"
@@ -395,6 +416,10 @@ msgstr "搜索本地资料库"
 msgctxt "#31114"
 msgid "Search YouTube"
 msgstr "搜索 YouTube"
+
+msgctxt "#31115"
+msgid "Toggle subtitle"
+msgstr "切换字幕"
 
 msgctxt "#31116"
 msgid "Remove this main menu item"
@@ -578,32 +603,38 @@ msgstr "数字键盘"
 
 msgctxt "#31162"
 msgid "Play your personal games or download one of the many game add-ons from the official repository."
-msgstr "玩你自己珍藏的游戏或者从官方仓库中下载游戏插件"
+msgstr "玩你自己珍藏的游戏或者从官方仓库中下载游戏插件。"
 
 msgctxt "#31163"
 msgid "Show Fanart background"
 msgstr "显示同人画背景"
 
+#. Choose profile identifier
 msgctxt "#31164"
 msgid "Choose kind of profile identification"
 msgstr "选择个人配置标识种类"
 
+#. Label for the kind of profile identification
 msgctxt "#31165"
 msgid "Profile name"
 msgstr "用户配置名称"
 
+#. Label for the kind of profile identification
 msgctxt "#31166"
 msgid "Profile avatar"
 msgstr "用户配置头像"
 
+#. Label of a setting
 msgctxt "#31167"
 msgid "Animate background"
 msgstr "动态背景"
 
+#. Label of a setting
 msgctxt "#31168"
 msgid "Show posters instead of thumbs for musicvideos"
 msgstr "对于音乐电视，显示海报而不是缩略图"
 
+#. Description label for skin settings area
 msgctxt "#31169"
 msgid "Artwork related settings."
 msgstr "艺术图片相关的设置。"

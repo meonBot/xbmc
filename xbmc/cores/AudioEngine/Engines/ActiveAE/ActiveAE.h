@@ -13,6 +13,7 @@
 #include "cores/AudioEngine/Interfaces/AESound.h"
 #include "cores/AudioEngine/Interfaces/AEStream.h"
 #include "guilib/DispResource.h"
+#include "threads/SystemClock.h"
 #include "threads/Thread.h"
 
 #include <list>
@@ -50,6 +51,7 @@ struct AudioSettings
   bool dtspassthrough;
   bool truehdpassthrough;
   bool dtshdpassthrough;
+  bool usesdtscorefallback;
   bool stereoupmix;
   bool normalizelevels;
   bool passthrough;
@@ -250,6 +252,7 @@ public:
   void EnumerateOutputDevices(AEDeviceList &devices, bool passthrough) override;
   bool SupportsRaw(AEAudioFormat &format) override;
   bool SupportsSilenceTimeout() override;
+  bool UsesDtsCoreFallback() override;
   bool HasStereoAudioChannelCount() override;
   bool HasHDAudioChannelCount() override;
   bool SupportsQualityLevel(enum AEQuality level) override;

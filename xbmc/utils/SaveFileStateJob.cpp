@@ -59,15 +59,18 @@ void CSaveFileState::DoWork(CFileItem& item,
     if (item.IsVideo())
     {
       std::string redactPath = CURL::GetRedacted(progressTrackingFile);
-      CLog::Log(LOGDEBUG, "%s - Saving file state for video item %s", __FUNCTION__, redactPath.c_str());
+      CLog::Log(LOGDEBUG, "{} - Saving file state for video item {}", __FUNCTION__, redactPath);
 
       CVideoDatabase videodatabase;
       if (!videodatabase.Open())
       {
-        CLog::Log(LOGWARNING, "%s - Unable to open video database. Can not save file state!", __FUNCTION__);
+        CLog::Log(LOGWARNING, "{} - Unable to open video database. Can not save file state!",
+                  __FUNCTION__);
       }
       else
       {
+        videodatabase.BeginTransaction();
+
         if (URIUtils::IsPlugin(progressTrackingFile) && !(item.HasVideoInfoTag() && item.GetVideoInfoTag()->m_iDbId >= 0))
         {
           // FileItem from plugin can lack information, make sure all needed fields are set
@@ -90,7 +93,8 @@ void CSaveFileState::DoWork(CFileItem& item,
             // no watched for not yet finished pvr recordings
             if (!item.IsInProgressPVRRecording())
             {
-              CLog::Log(LOGDEBUG, "%s - Marking video item %s as watched", __FUNCTION__, redactPath.c_str());
+              CLog::Log(LOGDEBUG, "{} - Marking video item {} as watched", __FUNCTION__,
+                        redactPath);
 
               // consider this item as played
               videodatabase.IncrementPlayCount(item);
@@ -115,7 +119,7 @@ void CSaveFileState::DoWork(CFileItem& item,
           if (!item.HasVideoInfoTag() ||
               item.GetVideoInfoTag()->GetResumePoint().timeInSeconds != bookmark.timeInSeconds)
           {
-            if (bookmark.timeInSeconds <= 0.0f)
+            if (bookmark.timeInSeconds <= 0.0)
               videodatabase.ClearBookMarksOfFile(progressTrackingFile, CBookmark::RESUME);
             else
               videodatabase.AddBookMarkToFile(progressTrackingFile, bookmark, CBookmark::RESUME);
@@ -156,6 +160,7 @@ void CSaveFileState::DoWork(CFileItem& item,
         if (stackHelper.HasRegisteredStack(item) && stackHelper.GetRegisteredStackTotalTimeMs(item) == 0)
           videodatabase.GetResumePoint(*(stackHelper.GetRegisteredStack(item)->GetVideoInfoTag()));
 
+        videodatabase.CommitTransaction();
         videodatabase.Close();
 
         if (updateListing)
@@ -173,19 +178,20 @@ void CSaveFileState::DoWork(CFileItem& item,
     if (item.IsAudio())
     {
       std::string redactPath = CURL::GetRedacted(progressTrackingFile);
-      CLog::Log(LOGDEBUG, "%s - Saving file state for audio item %s", __FUNCTION__, redactPath.c_str());
+      CLog::Log(LOGDEBUG, "{} - Saving file state for audio item {}", __FUNCTION__, redactPath);
 
       CMusicDatabase musicdatabase;
       if (updatePlayCount)
       {
         if (!musicdatabase.Open())
         {
-          CLog::Log(LOGWARNING, "%s - Unable to open music database. Can not save file state!", __FUNCTION__);
+          CLog::Log(LOGWARNING, "{} - Unable to open music database. Can not save file state!",
+                    __FUNCTION__);
         }
         else
         {
           // consider this item as played
-          CLog::Log(LOGDEBUG, "%s - Marking audio item %s as listened", __FUNCTION__, redactPath.c_str());
+          CLog::Log(LOGDEBUG, "{} - Marking audio item {} as listened", __FUNCTION__, redactPath);
 
           musicdatabase.IncrementPlayCount(item);
           musicdatabase.Close();

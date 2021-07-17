@@ -16,6 +16,18 @@ msgstr ""
 "Language: en_GB\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgctxt "Addon Summary"
+msgid "Estuary skin by phil65. (Kodi's default skin)"
+msgstr ""
+
+msgctxt "Addon Description"
+msgid "Estuary is the default skin for Kodi 17.0 and above. It attempts to be easy for first time Kodi users to understand and use."
+msgstr ""
+
+msgctxt "Addon Disclaimer"
+msgid "Estuary is the default skin for Kodi, removing it may cause issues"
+msgstr ""
+
 #: /xml/Home.xml /xml/DialogSeekBar.xml
 msgctxt "#31000"
 msgid "Now playing"
@@ -520,7 +532,10 @@ msgctxt "#31114"
 msgid "Search YouTube"
 msgstr ""
 
-#empty string with id 31115
+#: /xml/VideoOSD.xml
+msgctxt "#31115"
+msgid "Toggle subtitle"
+msgstr ""
 
 #: /xml/Includes_Home.xml
 msgctxt "#31116"

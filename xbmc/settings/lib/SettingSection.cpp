@@ -53,10 +53,15 @@ template<class T> void addISetting(const TiXmlNode *node, const T &item, std::ve
   items.push_back(item);
 }
 
+Logger CSettingGroup::s_logger;
+
 CSettingGroup::CSettingGroup(const std::string& id,
                              CSettingsManager* settingsManager /* = nullptr */)
-  : ISetting(id, settingsManager), CStaticLoggerBase("CSettingGroup")
-{ }
+  : ISetting(id, settingsManager)
+{
+  if (s_logger == nullptr)
+    s_logger = CServiceBroker::GetLogging().GetLogger("CSettingGroup");
+}
 
 bool CSettingGroup::Deserialize(const TiXmlNode *node, bool update /* = false */)
 {
@@ -92,7 +97,8 @@ bool CSettingGroup::Deserialize(const TiXmlNode *node, bool update /* = false */
   while (settingElement != nullptr)
   {
     std::string settingId;
-    if (CSettingCategory::DeserializeIdentification(settingElement, settingId))
+    bool isReference;
+    if (CSetting::DeserializeIdentification(settingElement, settingId, isReference))
     {
       auto settingIt = std::find_if(m_settings.begin(), m_settings.end(),
         [&settingId](const SettingPtr& setting)
@@ -121,10 +127,20 @@ bool CSettingGroup::Deserialize(const TiXmlNode *node, bool update /* = false */
 
       if (setting == nullptr)
         s_logger->error("unable to create new setting \"{}\"", settingId);
-      else if (!setting->Deserialize(settingElement, update))
-        s_logger->warn("unable to read setting \"{}\"", settingId);
-      else if (!update)
-        addISetting(settingElement, setting, m_settings);
+      else
+      {
+        if (!setting->Deserialize(settingElement, update))
+          s_logger->warn("unable to read setting \"{}\"", settingId);
+        else
+        {
+          // if the setting is a reference turn it into one
+          if (isReference)
+            setting->MakeReference();
+
+          if (!update)
+            addISetting(settingElement, setting, m_settings);
+        }
+      }
     }
 
     settingElement = settingElement->NextSiblingElement(SETTING_XML_ELM_SETTING);
@@ -175,12 +191,16 @@ bool CSettingGroup::ReplaceSetting(const std::shared_ptr<const CSetting>& curren
   return false;
 }
 
+Logger CSettingCategory::s_logger;
+
 CSettingCategory::CSettingCategory(const std::string& id,
                                    CSettingsManager* settingsManager /* = nullptr */)
   : ISetting(id, settingsManager),
-    CStaticLoggerBase("CSettingCategory"),
     m_accessCondition(settingsManager)
-{ }
+{
+  if (s_logger == nullptr)
+    s_logger = CServiceBroker::GetLogging().GetLogger("CSettingCategory");
+}
 
 bool CSettingCategory::Deserialize(const TiXmlNode *node, bool update /* = false */)
 {
@@ -255,10 +275,15 @@ void CSettingCategory::AddGroups(const SettingGroupList &groups)
     addISetting(nullptr, group, m_groups);
 }
 
+Logger CSettingSection::s_logger;
+
 CSettingSection::CSettingSection(const std::string& id,
                                  CSettingsManager* settingsManager /* = nullptr */)
-  : ISetting(id, settingsManager), CStaticLoggerBase("CSettingSection")
-{ }
+  : ISetting(id, settingsManager)
+{
+  if (s_logger == nullptr)
+    s_logger = CServiceBroker::GetLogging().GetLogger("CSettingSection");
+}
 
 bool CSettingSection::Deserialize(const TiXmlNode *node, bool update /* = false */)
 {

@@ -40,7 +40,7 @@ CAudioSinkAE::~CAudioSinkAE()
 
 bool CAudioSinkAE::Create(const DVDAudioFrame &audioframe, AVCodecID codec, bool needresampler)
 {
-  CLog::Log(LOGINFO, "Creating audio stream (codec id: %i, channels: %i, sample rate: %i, %s)",
+  CLog::Log(LOGINFO, "Creating audio stream (codec id: {}, channels: {}, sample rate: {}, {})",
             codec, audioframe.format.m_channelLayout.Count(), audioframe.format.m_sampleRate,
             audioframe.passthrough ? "pass-through" : "no pass-through");
 
@@ -355,8 +355,10 @@ CAEStreamInfo::DataType CAudioSinkAE::GetPassthroughStreamType(AVCodecID codecId
     case AV_CODEC_ID_DTS:
       if (profile == FF_PROFILE_DTS_HD_HRA)
         format.m_streamInfo.m_type = CAEStreamInfo::STREAM_TYPE_DTSHD;
-      else
+      else if (profile == FF_PROFILE_DTS_HD_MA)
         format.m_streamInfo.m_type = CAEStreamInfo::STREAM_TYPE_DTSHD_MA;
+      else
+        format.m_streamInfo.m_type = CAEStreamInfo::STREAM_TYPE_DTSHD_CORE;
       format.m_streamInfo.m_sampleRate = samplerate;
       break;
 
@@ -371,7 +373,9 @@ CAEStreamInfo::DataType CAudioSinkAE::GetPassthroughStreamType(AVCodecID codecId
 
   bool supports = CServiceBroker::GetActiveAE()->SupportsRaw(format);
 
-  if (!supports && codecId == AV_CODEC_ID_DTS)
+  if (!supports && codecId == AV_CODEC_ID_DTS &&
+      format.m_streamInfo.m_type != CAEStreamInfo::STREAM_TYPE_DTSHD_CORE &&
+      CServiceBroker::GetActiveAE()->UsesDtsCoreFallback())
   {
     format.m_streamInfo.m_type = CAEStreamInfo::STREAM_TYPE_DTSHD_CORE;
     supports = CServiceBroker::GetActiveAE()->SupportsRaw(format);

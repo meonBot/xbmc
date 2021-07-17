@@ -169,11 +169,13 @@ void CAddonSettings::OnSettingAction(const std::shared_ptr<const CSetting>& sett
   {
     auto settingAction = std::dynamic_pointer_cast<const CSettingAction>(setting);
     if (settingAction != nullptr && settingAction->HasData())
+    {
       actionData = settingAction->GetData();
       // replace $CWD with the url of the add-on
       StringUtils::Replace(actionData, "$CWD", m_addonPath);
       // replace $ID with the id of the add-on
       StringUtils::Replace(actionData, "$ID", m_addonId);
+    }
   }
 
   // check if the setting control's is a button and its format is action
@@ -490,7 +492,7 @@ std::shared_ptr<CSettingGroup> CAddonSettings::ParseOldSettingElement(
           category->AddGroup(group);
 
           // and create a new one
-          group.reset(new CSettingGroup(StringUtils::Format("{}", groupId), GetSettingsManager()));
+          group.reset(new CSettingGroup(std::to_string(groupId), GetSettingsManager()));
           groupId += 1;
         }
 

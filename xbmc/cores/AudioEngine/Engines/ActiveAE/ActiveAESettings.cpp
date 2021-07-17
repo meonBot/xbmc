@@ -52,6 +52,7 @@ CActiveAESettings::CActiveAESettings(CActiveAE &ae) : m_audioEngine(ae)
   settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_STREAMSILENCE);
   settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_STREAMNOISE);
   settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_MAINTAINORIGINALVOLUME);
+  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DTSHDCOREFALLBACK);
   settings->GetSettingsManager()->RegisterCallback(this, settingSet);
 
   settings->GetSettingsManager()->RegisterSettingOptionsFiller("aequalitylevels", SettingOptionsAudioQualityLevelsFiller);
@@ -124,15 +125,15 @@ void CActiveAESettings::SettingOptionsAudioStreamsilenceFiller(
 {
   CSingleLock lock(m_instance->m_cs);
 
-  list.emplace_back(g_localizeStrings.Get(20422), XbmcThreads::EndTime::InfiniteValue);
+  list.emplace_back(g_localizeStrings.Get(20422), std::numeric_limits<int>::max());
   list.emplace_back(g_localizeStrings.Get(13551), 0);
 
   if (m_instance->m_audioEngine.SupportsSilenceTimeout())
   {
-    list.emplace_back(StringUtils::Format(g_localizeStrings.Get(13554).c_str(), 1), 1);
+    list.emplace_back(StringUtils::Format(g_localizeStrings.Get(13554), 1), 1);
     for (int i = 2; i <= 10; i++)
     {
-      list.emplace_back(StringUtils::Format(g_localizeStrings.Get(13555).c_str(), i), i);
+      list.emplace_back(StringUtils::Format(g_localizeStrings.Get(13555), i), i);
     }
   }
 }

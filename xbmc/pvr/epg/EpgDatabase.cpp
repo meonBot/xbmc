@@ -760,7 +760,7 @@ std::shared_ptr<CPVREpgInfoTag> CPVREpgDatabase::GetEpgTagByDatabaseID(int iEpgI
     }
     catch (...)
     {
-      CLog::LogF(LOGERROR, "Could not load EPG tag with database ID (%u) from the database",
+      CLog::LogF(LOGERROR, "Could not load EPG tag with database ID ({}) from the database",
                  iDatabaseId);
     }
   }
@@ -1099,7 +1099,7 @@ bool CPVREpgDatabase::QueueDeleteEpgTags(int iEpgId)
   filter.AppendWhere(PrepareSQL("idEpg = %u", iEpgId));
 
   std::string strQuery;
-  BuildSQL(PrepareSQL("DELETE FROM %s ", "epg"), filter, strQuery);
+  BuildSQL(PrepareSQL("DELETE FROM %s ", "epgtags"), filter, strQuery);
   return QueueDeleteQuery(strQuery);
 }
 

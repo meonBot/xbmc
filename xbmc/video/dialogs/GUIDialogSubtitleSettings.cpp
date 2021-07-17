@@ -64,7 +64,8 @@ void CGUIDialogSubtitleSettings::FrameMove()
     // these settings can change on the fly
     //! @todo m_settingsManager->SetBool(SETTING_SUBTITLE_ENABLE, g_application.GetAppPlayer().GetSubtitleVisible());
     //   \-> Unless subtitle visibility can change on the fly, while Dialog is up, this code should be removed.
-    GetSettingsManager()->SetNumber(SETTING_SUBTITLE_DELAY, videoSettings.m_SubtitleDelay);
+    GetSettingsManager()->SetNumber(SETTING_SUBTITLE_DELAY,
+                                    static_cast<double>(videoSettings.m_SubtitleDelay));
     //! @todo (needs special handling): m_settingsManager->SetInt(SETTING_SUBTITLE_STREAM, g_application.GetAppPlayer().GetSubtitle());
   }
 
@@ -116,9 +117,13 @@ std::string CGUIDialogSubtitleSettings::BrowseForSubtitle()
 
   std::string strPath;
   if (URIUtils::IsInRAR(g_application.CurrentFileItem().GetPath()) || URIUtils::IsInZIP(g_application.CurrentFileItem().GetPath()))
+  {
     strPath = CURL(g_application.CurrentFileItem().GetPath()).GetHostName();
-  else
+  }
+  else if (!URIUtils::IsPlugin(g_application.CurrentFileItem().GetPath()))
+  {
     strPath = g_application.CurrentFileItem().GetPath();
+  }
 
   std::string strMask = ".utf|.utf8|.utf-8|.sub|.srt|.smi|.rt|.txt|.ssa|.aqt|.jss|.ass|.idx|.zip";
 
@@ -132,7 +137,10 @@ std::string CGUIDialogSubtitleSettings::BrowseForSubtitle()
   {
     CMediaSource share;
     std::vector<std::string> paths;
-    paths.push_back(URIUtils::GetDirectory(strPath));
+    if (!strPath.empty())
+    {
+      paths.push_back(URIUtils::GetDirectory(strPath));
+    }
     paths.push_back(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_SUBTITLES_CUSTOMPATH));
     share.FromNameAndPaths("video",g_localizeStrings.Get(21367),paths);
     shares.push_back(share);
@@ -334,10 +342,10 @@ void CGUIDialogSubtitleSettings::SubtitleStreamsOptionFiller(
     if (info.name.length() == 0)
       strItem = strLanguage;
     else
-      strItem = StringUtils::Format("%s - %s", strLanguage.c_str(), info.name.c_str());
+      strItem = StringUtils::Format("{} - {}", strLanguage, info.name);
 
     strItem += FormatFlags(info.flags);
-    strItem += StringUtils::Format(" (%i/%i)", i + 1, subtitleStreamCount);
+    strItem += StringUtils::Format(" ({}/{})", i + 1, subtitleStreamCount);
 
     list.emplace_back(strItem, i);
   }
@@ -364,11 +372,11 @@ std::string CGUIDialogSubtitleSettings::SettingFormatterDelay(
   float fStep = step.asFloat();
 
   if (fabs(fValue) < 0.5f * fStep)
-    return StringUtils::Format(g_localizeStrings.Get(22003).c_str(), 0.0);
+    return StringUtils::Format(g_localizeStrings.Get(22003), 0.0);
   if (fValue < 0)
-    return StringUtils::Format(g_localizeStrings.Get(22004).c_str(), fabs(fValue));
+    return StringUtils::Format(g_localizeStrings.Get(22004), fabs(fValue));
 
-  return StringUtils::Format(g_localizeStrings.Get(22005).c_str(), fValue);
+  return StringUtils::Format(g_localizeStrings.Get(22005), fValue);
 }
 
 std::string CGUIDialogSubtitleSettings::FormatFlags(StreamFlags flags)
@@ -386,7 +394,7 @@ std::string CGUIDialogSubtitleSettings::FormatFlags(StreamFlags flags)
   std::string formated = StringUtils::Join(localizedFlags, ", ");
 
   if (!formated.empty())
-    formated = StringUtils::Format(" [%s]", formated);
+    formated = StringUtils::Format(" [{}]", formated);
 
   return formated;
 }

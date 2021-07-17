@@ -285,11 +285,13 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     int m_curlconnecttimeout;
     int m_curllowspeedtime;
     int m_curlretries;
+    int m_curlKeepAliveInterval;    // seconds
     bool m_curlDisableIPV6;
     bool m_curlDisableHTTP2;
 
     std::string m_caTrustFile;
 
+    bool m_minimizeToTray; /* win32 only */
     bool m_fullScreen;
     bool m_startFullScreen;
     bool m_showExitButton; /* Ideal for appliances to hide a 'useless' button */
@@ -300,12 +302,6 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     int m_playlistTimeout;
     bool m_GLRectangleHack;
     int m_iSkipLoopFilter;
-
-    /*!< @brief Decision flag to show or hide specific dependencies in the list of the AddonInfo dialog
-    as this information usually adds no value for a consumer.
-    True to recursively show any dependency of the selected add-on
-    False to hide 'low-level' dependencies like e.g. scripts/modules (default) */
-    bool m_showAllDependencies;
 
     bool m_bVirtualShares;
     bool m_bTry10bitOutput;
@@ -375,6 +371,7 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
 
     std::string m_userAgent;
     uint32_t m_nfsTimeout;
+    int m_nfsRetries;
 
   private:
     void Initialize();
