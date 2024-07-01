@@ -245,6 +245,15 @@ void CPVRChannelGroup::UpdateClientPriorities()
     SortAndRenumber();
 }
 
+bool CPVRChannelGroup::ShouldBeIgnored(
+    const std::vector<std::shared_ptr<CPVRChannelGroup>>& allChannelGroups) const
+{
+  std::unique_lock<CCriticalSection> lock(m_critSection);
+
+  // Empty group should be ignored.
+  return m_members.empty();
+}
+
 bool CPVRChannelGroup::UpdateMembersClientPriority()
 {
   const std::shared_ptr<const CPVRClients> clients = CServiceBroker::GetPVRManager().Clients();
@@ -609,6 +618,10 @@ bool CPVRChannelGroup::UpdateFromClient(const std::shared_ptr<CPVRChannelGroupMe
     if (groupMember->GroupID() == INVALID_GROUP_ID)
       groupMember->SetGroupID(GroupID());
 
+    // Seeing this channel for the very first time. Remember when it was added.
+    if (IsChannelsOwner() && !channel->DateTimeAdded().IsValid())
+      channel->SetDateTimeAdded(CDateTime::GetUTCDateTime());
+
     m_sortedMembers.emplace_back(groupMember);
     m_members.emplace(channel->StorageId(), groupMember);
 
@@ -873,6 +886,11 @@ void CPVRChannelGroup::Delete()
   }
 }
 
+void CPVRChannelGroup::DeleteGroupMember(const std::shared_ptr<CPVRChannelGroupMember>& member)
+{
+  DeleteGroupMembersFromDb({member});
+}
+
 bool CPVRChannelGroup::Renumber(RenumberMode mode /* = NORMAL */)
 {
   bool bReturn(false);
@@ -1009,7 +1027,7 @@ std::string CPVRChannelGroup::GroupName() const
   return m_path.GetGroupName();
 }
 
-void CPVRChannelGroup::SetGroupName(const std::string& strGroupName,
+bool CPVRChannelGroup::SetGroupName(const std::string& strGroupName,
                                     bool isUserSetName /* = false */)
 {
   std::unique_lock<CCriticalSection> lock(m_critSection);
@@ -1025,11 +1043,10 @@ void CPVRChannelGroup::SetGroupName(const std::string& strGroupName,
     }
 
     if (m_bLoaded)
-    {
       m_bChanged = true;
-      Persist(); //! @todo why must we persist immediately?
-    }
+    return true;
   }
+  return false;
 }
 
 std::string CPVRChannelGroup::ClientGroupName() const
@@ -1127,9 +1144,9 @@ bool CPVRChannelGroup::SetHidden(bool bHidden)
     m_bHidden = bHidden;
     if (m_bLoaded)
       m_bChanged = true;
+    return true;
   }
-
-  return m_bChanged;
+  return false;
 }
 
 bool CPVRChannelGroup::IsHidden() const
@@ -1144,7 +1161,7 @@ int CPVRChannelGroup::GetPosition() const
   return m_iPosition;
 }
 
-void CPVRChannelGroup::SetPosition(int iPosition)
+bool CPVRChannelGroup::SetPosition(int iPosition)
 {
   std::unique_lock<CCriticalSection> lock(m_critSection);
 
@@ -1153,7 +1170,9 @@ void CPVRChannelGroup::SetPosition(int iPosition)
     m_iPosition = iPosition;
     if (m_bLoaded)
       m_bChanged = true;
+    return true;
   }
+  return false;
 }
 
 int CPVRChannelGroup::GetClientPosition() const

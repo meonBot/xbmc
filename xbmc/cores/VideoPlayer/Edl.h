@@ -8,8 +8,11 @@
 
 #pragma once
 
+#include "cores/Direction.h"
 #include "cores/EdlEdit.h"
 
+#include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -20,10 +23,7 @@ class CEdl
 public:
   CEdl();
 
-  // FIXME: remove const modifier for fFramesPerSecond as it makes no sense as it means nothing
-  // for the reader of the interface, but limits the implementation
-  // to not modify the parameter on stack
-  bool ReadEditDecisionLists(const CFileItem& fileItem, const float fFramesPerSecond);
+  bool ReadEditDecisionLists(const CFileItem& fileItem, float fps);
   void Clear();
 
   /*!
@@ -103,14 +103,13 @@ public:
 
   /*!
    * @brief Check if for the provided seek time is contained within an EDL
-   * edit and fill pEdit with the respective edit struct.
+   * edit
    * @note seek time refers to the time in the original file timeline (i.e. without
    * considering cut blocks)
-   * @param iSeek The seek time (on the original timeline)
-   * @param[in,out] pEdit The edit pointer (or nullptr if iSeek not within an edit)
-   * @return true if iSeek is within an edit, false otherwise
+   * @param seekTime The seek time (on the original timeline)
+   * @return a pointer to the edit struct if seekTime is within an edit, nullopt otherwise
   */
-  bool InEdit(int iSeek, EDL::Edit* pEdit = nullptr);
+  std::optional<std::unique_ptr<EDL::Edit>> InEdit(int seekTime);
 
   /*!
    * @brief Get the last processed edit time (set during playback when a given
@@ -144,15 +143,15 @@ public:
   */
   EDL::Action GetLastEditActionType() const;
 
-  // FIXME: remove const modifier for iClock as it makes no sense as it means nothing
-  // for the reader of the interface, but limits the implementation
-  // to not modify the parameter on stack
-  bool GetNextSceneMarker(bool bPlus, const int iClock, int *iSceneMarker);
+  /*!
+   * @brief Get the next scene marker with respect to the provided clock time
+   * @param direction (the direction of the search - backward or forward)
+   * @param clock the current position of the clock
+   * @return the position of the scenemarker (nullopt if none)
+  */
+  std::optional<int> GetNextSceneMarker(Direction direction, int clock);
 
-  // FIXME: remove const modifier as it makes no sense as it means nothing
-  // for the reader of the interface, but limits the implementation
-  // to not modify the parameter on stack
-  static std::string MillisecondsToTimeString(const int iMilliseconds);
+  static std::string MillisecondsToTimeString(int milliSeconds);
 
 private:
   // total cut time (edl cuts) in ms
@@ -170,22 +169,10 @@ private:
   */
   EDL::Action m_lastEditActionType{EDL::EDL_ACTION_NONE};
 
-  // FIXME: remove const modifier for fFramesPerSecond as it makes no sense as it means nothing
-  // for the reader of the interface, but limits the implementation
-  // to not modify the parameter on stack
-  bool ReadEdl(const std::string& strMovie, const float fFramesPerSecond);
-  // FIXME: remove const modifier for fFramesPerSecond as it makes no sense as it means nothing
-  // for the reader of the interface, but limits the implementation
-  // to not modify the parameter on stack
-  bool ReadComskip(const std::string& strMovie, const float fFramesPerSecond);
-  // FIXME: remove const modifier for strMovie as it makes no sense as it means nothing
-  // for the reader of the interface, but limits the implementation
-  // to not modify the parameter on stack
-  bool ReadVideoReDo(const std::string& strMovie);
-  // FIXME: remove const modifier for strMovie as it makes no sense as it means nothing
-  // for the reader of the interface, but limits the implementation
-  // to not modify the parameter on stack
-  bool ReadBeyondTV(const std::string& strMovie);
+  bool ReadEdl(const std::string& mediaFilePath, float fps);
+  bool ReadComskip(const std::string& mediaFilePath, float fps);
+  bool ReadVideoReDo(const std::string& mediaFilePath);
+  bool ReadBeyondTV(const std::string& mediaFilePath);
   bool ReadPvr(const CFileItem& fileItem);
 
   /*!
@@ -195,10 +182,7 @@ private:
   */
   bool AddEdit(const EDL::Edit& newEdit);
 
-  // FIXME: remove const modifier for strMovie as it makes no sense as it means nothing
-  // for the reader of the interface, but limits the implementation
-  // to not modify the parameter on stack
-  bool AddSceneMarker(const int sceneMarker);
+  bool AddSceneMarker(int sceneMarker);
 
   void MergeShortCommBreaks();
 

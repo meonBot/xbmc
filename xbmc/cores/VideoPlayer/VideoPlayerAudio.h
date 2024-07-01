@@ -30,7 +30,10 @@ class CDVDAudioCodec;
 class CVideoPlayerAudio : public CThread, public IDVDStreamPlayerAudio
 {
 public:
-  CVideoPlayerAudio(CDVDClock* pClock, CDVDMessageQueue& parent, CProcessInfo &processInfo);
+  CVideoPlayerAudio(CDVDClock* pClock,
+                    CDVDMessageQueue& parent,
+                    CProcessInfo& processInfo,
+                    double messageQueueTimeSize);
   ~CVideoPlayerAudio() override;
 
   bool OpenStream(CDVDStreamInfo hints) override;

@@ -24,9 +24,9 @@ struct PVR_CHANNEL_GROUP;
 
 namespace PVR
 {
-static constexpr int PVR_GROUP_TYPE_REMOTE = 0;
-static constexpr int PVR_GROUP_TYPE_ALL_CHANNELS = 1;
-static constexpr int PVR_GROUP_TYPE_LOCAL = 2;
+static constexpr int PVR_GROUP_TYPE_CLIENT = 0;
+static constexpr int PVR_GROUP_TYPE_SYSTEM_ALL_CHANNELS = 1;
+static constexpr int PVR_GROUP_TYPE_USER = 2;
 
 static constexpr int PVR_GROUP_CLIENT_ID_UNKNOWN = -2;
 static constexpr int PVR_GROUP_CLIENT_ID_LOCAL = -1;
@@ -51,8 +51,7 @@ using GroupMemberPair =
 
 class CPVRChannelGroup : public IChannelGroupSettingsCallback
 {
-  friend class CPVRChannelGroups; // for GroupType()
-  friend class CPVRDatabase; // for GroupType()
+  friend class CPVRDatabase;
 
 public:
   static const int INVALID_GROUP_ID = -1;
@@ -157,8 +156,9 @@ public:
    * @brief Change the name of this group.
    * @param strGroupName The new group name.
    * @param isUserSetName Whether the name was set by the user.
+   * @return True if the group name was changed, false otherwise.
    */
-  void SetGroupName(const std::string& strGroupName, bool isUserSetName = false);
+  bool SetGroupName(const std::string& strGroupName, bool isUserSetName = false);
 
   /*!
    * @brief Set the name this group has on the client.
@@ -382,7 +382,17 @@ public:
    */
   std::shared_ptr<CPVRChannelGroupMember> GetByUniqueID(const std::pair<int, int>& id) const;
 
+  /*!
+   * @brief Set the hidden state of this group.
+   * @param bHidden True to set hidden state, false to unhide the group.
+   * @return True if hidden state was changed, false otherwise.
+   */
   bool SetHidden(bool bHidden);
+
+  /*!
+   * @brief Check whether this group is hidden.
+   * @return True if group is hidden, false otherwise.
+   */
   bool IsHidden() const;
 
   /*!
@@ -394,8 +404,9 @@ public:
   /*!
    * @brief Set the local position of this group.
    * @param iPosition The new local group position.
+   * @return True if position has changed, false otherwise.
    */
-  void SetPosition(int iPosition);
+  bool SetPosition(int iPosition);
 
   /*!
    * @brief Get the position of this group as supplied by the PVR client.
@@ -437,6 +448,12 @@ public:
   void Delete();
 
   /*!
+   * @brief Remove the given group member from the database.
+   * @param member The member to remove from the database.
+   */
+  void DeleteGroupMember(const std::shared_ptr<CPVRChannelGroupMember>& member);
+
+  /*!
    * @brief Whether this group is deleted.
    * @return True, if deleted, false otherwise.
    */
@@ -458,6 +475,23 @@ public:
    * @brief Update the client priority for this group and all members of this group.
    */
   void UpdateClientPriorities();
+
+  enum class Origin
+  {
+    USER, // created and managed by the user
+    SYSTEM, // created and managed by Kodi
+    CLIENT, // created and managed by PVR client add-on
+  };
+  /*!
+   * @brief Get the group's origin.
+   * @return The origin.
+   */
+  virtual Origin GetOrigin() const = 0;
+
+  /*!
+   * @brief Return the type of this group.
+   */
+  virtual int GroupType() const = 0;
 
   /*!
    * @brief Check whether this group could be deleted by the user.
@@ -482,6 +516,15 @@ public:
    * @return True if owner, false otherwise.
    */
   virtual bool IsChannelsOwner() const = 0;
+
+  /*!
+   * @brief Check whether this group should be ignored, e.g. not presented to the user and API.
+   * @param allChannelGroups All available channel groups. This information might be needed by
+   * implementations to calculate the ignore state.
+   * @return True if to be ignored, false otherwise.
+   */
+  virtual bool ShouldBeIgnored(
+      const std::vector<std::shared_ptr<CPVRChannelGroup>>& allChannelGroups) const;
 
 protected:
   /*!
@@ -538,11 +581,6 @@ protected:
   static std::weak_ptr<CPVRChannelGroupSettings> m_settingsSingleton;
 
 private:
-  /*!
-   * @brief Return the type of this group.
-   */
-  virtual int GroupType() const = 0;
-
   /*!
    * @brief Load the channel group members stored in the database.
    * @param clients The PVR clients to load data for. Leave empty for all clients.

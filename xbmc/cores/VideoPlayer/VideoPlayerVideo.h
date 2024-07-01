@@ -45,11 +45,12 @@ public:
 class CVideoPlayerVideo : public CThread, public IDVDStreamPlayerVideo
 {
 public:
-  CVideoPlayerVideo(CDVDClock* pClock
-                 ,CDVDOverlayContainer* pOverlayContainer
-                 ,CDVDMessageQueue& parent
-                 ,CRenderManager& renderManager,
-                 CProcessInfo &processInfo);
+  CVideoPlayerVideo(CDVDClock* pClock,
+                    CDVDOverlayContainer* pOverlayContainer,
+                    CDVDMessageQueue& parent,
+                    CRenderManager& renderManager,
+                    CProcessInfo& processInfo,
+                    double messageQueueTimeSize);
   ~CVideoPlayerVideo() override;
 
   bool OpenStream(CDVDStreamInfo hint) override;
@@ -140,5 +141,5 @@ protected:
   CRenderManager& m_renderManager;
   VideoPicture m_picture;
 
-  EOutputState m_outputSate;
+  EOutputState m_outputSate{OUTPUT_NORMAL};
 };

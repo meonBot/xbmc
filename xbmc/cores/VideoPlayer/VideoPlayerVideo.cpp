@@ -16,6 +16,7 @@
 #include "cores/VideoPlayer/Interface/DemuxPacket.h"
 #include "cores/VideoPlayer/Interface/TimingConstants.h"
 #include "settings/AdvancedSettings.h"
+#include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "utils/MathUtils.h"
 #include "utils/log.h"
@@ -43,17 +44,17 @@ public:
   CDVDStreamInfo  m_hints;
 };
 
-
-CVideoPlayerVideo::CVideoPlayerVideo(CDVDClock* pClock
-                                ,CDVDOverlayContainer* pOverlayContainer
-                                ,CDVDMessageQueue& parent
-                                ,CRenderManager& renderManager
-                                ,CProcessInfo &processInfo)
-: CThread("VideoPlayerVideo")
-, IDVDStreamPlayerVideo(processInfo)
-, m_messageQueue("video")
-, m_messageParent(parent)
-, m_renderManager(renderManager)
+CVideoPlayerVideo::CVideoPlayerVideo(CDVDClock* pClock,
+                                     CDVDOverlayContainer* pOverlayContainer,
+                                     CDVDMessageQueue& parent,
+                                     CRenderManager& renderManager,
+                                     CProcessInfo& processInfo,
+                                     double messageQueueTimeSize)
+  : CThread("VideoPlayerVideo"),
+    IDVDStreamPlayerVideo(processInfo),
+    m_messageQueue("video"),
+    m_messageParent(parent),
+    m_renderManager(renderManager)
 {
   m_pClock = pClock;
   m_pOverlayContainer = pOverlayContainer;
@@ -67,9 +68,11 @@ CVideoPlayerVideo::CVideoPlayerVideo(CDVDClock* pClock
   m_iDroppedRequest = 0;
   m_fForcedAspectRatio = 0;
 
-  // 128 MB allows max bitrate of 128 Mbit/s (e.g. UHD Blu-Ray) during 8 seconds
-  m_messageQueue.SetMaxDataSize(128 * 1024 * 1024);
-  m_messageQueue.SetMaxTimeSize(8.0);
+  const int sizeMB = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(
+      CSettings::SETTING_VIDEOPLAYER_QUEUEDATASIZE);
+
+  m_messageQueue.SetMaxDataSize(sizeMB * 1024 * 1024);
+  m_messageQueue.SetMaxTimeSize(messageQueueTimeSize);
 
   m_iDroppedFrames = 0;
   m_fFrameRate = 25;
@@ -953,9 +956,11 @@ CVideoPlayerVideo::EOutputState CVideoPlayerVideo::OutputPicture(const VideoPict
 std::string CVideoPlayerVideo::GetPlayerInfo()
 {
   std::ostringstream s;
-  s << "vq:"   << std::setw(2) << std::min(99, m_processInfo.GetLevelVQ()) << "%";
-  s << ", Mb/s:" << std::fixed << std::setprecision(2) << (double)GetVideoBitrate() / (1024.0*1024.0);
-  s << ", fr:"     << std::fixed << std::setprecision(3) << m_fFrameRate;
+  s << "vq:" << std::setw(2) << std::min(99, m_processInfo.GetLevelVQ());
+  s << "% " << std::fixed << std::setprecision(3) << m_messageQueue.GetTimeSize();
+  s << "s, Mb/s:" << std::fixed << std::setprecision(2)
+    << static_cast<double>(GetVideoBitrate()) / (1024.0 * 1024.0);
+  s << ", fr:" << std::fixed << std::setprecision(3) << m_fFrameRate;
   s << ", drop:" << m_iDroppedFrames;
   s << ", skip:" << m_renderManager.GetSkippedFrames();
 
