@@ -125,8 +125,8 @@ msgid "Sort by"
 msgstr "Sort by"
 
 msgctxt "#31023"
-msgid "Viewtype"
-msgstr "Viewtype"
+msgid "View type"
+msgstr "View type"
 
 msgctxt "#31024"
 msgid "Choose rating to display for media items"
@@ -393,6 +393,11 @@ msgstr "Teletext"
 msgctxt "#31107"
 msgid "WideList"
 msgstr "WideList"
+
+#. viewtype name
+msgctxt "#31108"
+msgid "MediaList"
+msgstr ""
 
 # empty strings from id 31108 to 31108
 msgctxt "#31109"

@@ -2588,6 +2588,7 @@ msgstr ""
 #. generic "name" label used in different places
 #: xbmc/addons/settings/AddonSettings.cpp
 #: xbmc/pvr/windows/GUIViewStatePVR.cpp
+#: xbmc/video/GUIViewStateVideo.cpp
 #: xbmc/view/GUIViewState.cpp
 msgctxt "#551"
 msgid "Name"
@@ -2597,11 +2598,13 @@ msgstr ""
 #: addons/skin.estuary/xml/DialogPVRInfo.xml
 #: addons/skin.estuary/xml/Variables.xml
 #: xbmc/pvr/windows/GUIViewStatePVR.cpp
+#: xbmc/video/GUIViewStateVideo.cpp
 msgctxt "#552"
 msgid "Date"
 msgstr ""
 
 #: xbmc/filesystem/BlurayDirectory.cpp
+#: xbmc/video/GUIViewStateVideo.cpp
 msgctxt "#553"
 msgid "Size"
 msgstr ""
@@ -2620,6 +2623,7 @@ msgstr ""
 #: xbmc/dialogs/GUIDialogMediaFilter.cpp
 #: xbmc/playlists/SmartPlaylist.cpp
 #: addons/skin.estuary/xml/DialogPVRRadioRDSInfo.xml
+#: xbmc/video/GUIViewStateVideo.cpp
 msgctxt "#556"
 msgid "Title"
 msgstr ""
@@ -2700,6 +2704,7 @@ msgstr ""
 #: addons/skin.estuary/xml/Includes_MusicInfo.xml
 #: addons/skin.estuary/xml/Variables.xml
 #: xbmc/pvr/dialogs/GUIDialogPVRRecordingSettings.cpp
+#: xbmc/video/GUIViewStateVideo.cpp
 msgctxt "#567"
 msgid "Play count"
 msgstr ""
@@ -2710,6 +2715,7 @@ msgstr ""
 #: xbmc/dialogs/GUIDialogMediaFilter.cpp
 #: xbmc/playlists/SmartPlaylist.cpp
 #: xbmc/pvr/windows/GUIViewStatePVR.cpp
+#: xbmc/video/GUIViewStateVideo.cpp
 msgctxt "#568"
 msgid "Last played"
 msgstr ""
@@ -2723,6 +2729,7 @@ msgstr ""
 #: xbmc/dialogs/GUIDialogMediaFilter.cpp
 #: xbmc/playlists/SmartPlaylist.cpp
 #: xbmc/pvr/windows/GUIViewStatePVR.cpp
+#: xbmc/video/GUIViewStateVideo.cpp
 msgctxt "#570"
 msgid "Date added"
 msgstr ""
@@ -14929,6 +14936,7 @@ msgid "Episode title"
 msgstr ""
 
 #: xbmc/playlists/SmartPlaylist.cpp
+#: xbmc/video/GUIViewStateVideo.cpp
 msgctxt "#21443"
 msgid "Video resolution"
 msgstr ""
@@ -14940,11 +14948,13 @@ msgid "Audio channels"
 msgstr ""
 
 #: xbmc/playlists/SmartPlaylist.cpp
+#: xbmc/video/GUIViewStateVideo.cpp
 msgctxt "#21445"
 msgid "Video codec"
 msgstr ""
 
 #: xbmc/playlists/SmartPlaylist.cpp
+#: xbmc/video/GUIViewStateVideo.cpp
 #: addons/skin.estuary/xml/MusicVisualisation.xml
 msgctxt "#21446"
 msgid "Audio codec"
@@ -16833,7 +16843,19 @@ msgctxt "#24185"
 msgid "Minimum: {0:s} / Not available{3:s}"
 msgstr ""
 
-#empty strings from id 24186 to 24990
+#. Progress text on splash screen
+#: xbmc/Application.cpp
+msgctxt "#24186"
+msgid "Connecting to database - please wait"
+msgstr ""
+
+#. Error text on splash screen
+#: xbmc/Application.cpp
+msgctxt "#24187"
+msgid "Failed to initialise databases - exiting in {} seconds."
+msgstr ""
+
+#empty strings from id 24188 to 24990
 
 #. Used as error message in add-on browser when add-on repository data could not be downloaded
 #: xbmc/filesystem/AddonsDirectory.cpp
@@ -24205,7 +24227,7 @@ msgstr ""
 #. Help text of setting "Allow use DXVA Video Super Resolution" with label #13417
 #: system/settings/settings.xml
 msgctxt "#39194"
-msgid "Enables advanced DXVA upscaler using NVIDIA \"RTX Video Super Resolution\" or \"Intel Video Super Resolution\".[CR]Used when the video source is 1920x1080 or less and the source resolution is lower than the display resolution.[CR]Only available on specific hardware: NVIDIA RTX 20xx, 30xx, 40xx and above, Intel Arc A770, A750."
+msgid "Enables advanced DXVA upscaler using NVIDIA \"RTX Video Super Resolution\" or \"Intel Video Super Resolution\".[CR]Used when the video source is 2560x1440 or less and the source resolution is lower than the display resolution.[CR]Only available on specific hardware: NVIDIA RTX and Intel Arc."
 msgstr ""
 
 #. Description of setting with label #13418 "Use high precision processing"

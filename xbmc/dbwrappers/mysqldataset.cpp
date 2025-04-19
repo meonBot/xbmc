@@ -8,6 +8,7 @@
 
 #include "mysqldataset.h"
 
+#include "ServiceBroker.h"
 #include "Util.h"
 #include "network/DNSNameCache.h"
 #include "network/WakeOnAccess.h"
@@ -159,7 +160,8 @@ int MysqlDatabase::connect(bool create_new)
     return DB_CONNECTION_NONE;
 
   std::string resolvedHost;
-  if (!StringUtils::EqualsNoCase(host, "localhost") && CDNSNameCache::Lookup(host, resolvedHost))
+  if (!StringUtils::EqualsNoCase(host, "localhost") &&
+      CServiceBroker::GetDNSNameCache()->Lookup(host, resolvedHost))
   {
     if (host != resolvedHost)
       CLog::LogF(LOGDEBUG, "Replacing configured host {} with resolved host {}", host,
@@ -178,6 +180,7 @@ int MysqlDatabase::connect(bool create_new)
       mysql_ssl_set(conn, key.empty() ? NULL : key.c_str(), cert.empty() ? NULL : cert.c_str(),
                     ca.empty() ? NULL : ca.c_str(), capath.empty() ? NULL : capath.c_str(),
                     ciphers.empty() ? NULL : ciphers.c_str());
+      mysql_options(conn, MYSQL_OPT_CONNECT_TIMEOUT, &connect_timeout);
     }
 
     if (!CWakeOnAccess::GetInstance().WakeUpHost(host, "MySQL : " + db))
@@ -251,14 +254,16 @@ int MysqlDatabase::connect(bool create_new)
     }
 
     // if we failed above, either credentials were incorrect or the database didn't exist
-    if (mysql_errno(conn) == ER_BAD_DB_ERROR && create_new)
+    if (mysql_errno(conn) == ER_BAD_DB_ERROR)
     {
-
-      if (create() == MYSQL_OK)
+      if (create_new && create() == MYSQL_OK)
       {
         active = true;
-
         return DB_CONNECTION_OK;
+      }
+      else
+      {
+        return DB_CONNECTION_DATABASE_NOT_FOUND; // we're connected, but database does not exist
       }
     }
 
