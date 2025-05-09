@@ -12,7 +12,6 @@
 #include "utils/StringUtils.h"
 
 #include <algorithm>
-#include <iterator>
 #include <memory>
 
 using namespace PVR;
@@ -24,7 +23,7 @@ CPVRClientCapabilities::CPVRClientCapabilities(const CPVRClientCapabilities& oth
   InitRecordingsLifetimeValues();
 }
 
-const CPVRClientCapabilities& CPVRClientCapabilities::operator=(const CPVRClientCapabilities& other)
+CPVRClientCapabilities& CPVRClientCapabilities::operator=(const CPVRClientCapabilities& other)
 {
   if (other.m_addonCapabilities)
     m_addonCapabilities = std::make_unique<PVR_ADDON_CAPABILITIES>(*other.m_addonCapabilities);
@@ -32,7 +31,7 @@ const CPVRClientCapabilities& CPVRClientCapabilities::operator=(const CPVRClient
   return *this;
 }
 
-const CPVRClientCapabilities& CPVRClientCapabilities::operator=(
+CPVRClientCapabilities& CPVRClientCapabilities::operator=(
     const PVR_ADDON_CAPABILITIES& addonCapabilities)
 {
   m_addonCapabilities = std::make_unique<PVR_ADDON_CAPABILITIES>(addonCapabilities);
@@ -82,6 +81,5 @@ void CPVRClientCapabilities::InitRecordingsLifetimeValues()
 void CPVRClientCapabilities::GetRecordingsLifetimeValues(
     std::vector<std::pair<std::string, int>>& list) const
 {
-  std::copy(m_recordingsLifetimeValues.cbegin(), m_recordingsLifetimeValues.cend(),
-            std::back_inserter(list));
+  std::ranges::copy(m_recordingsLifetimeValues, std::back_inserter(list));
 }

@@ -85,7 +85,7 @@ private:
 
   void RefreshView(CGUIMessage& message, bool bInitGridControl);
 
-  int GetCurrentListItemIndex(const std::shared_ptr<const CFileItem>& item);
+  int GetCurrentListItemIndex(const std::shared_ptr<const CFileItem>& item) const;
 
   std::unique_ptr<CPVRRefreshTimelineItemsThread> m_refreshTimelineItemsThread;
   std::atomic_bool m_bRefreshTimelineItems{false};
@@ -122,8 +122,8 @@ public:
   void Stop();
 
 private:
-  CGUIWindowPVRGuideBase* m_pGuideWindow;
-  CEvent m_ready;
-  CEvent m_done;
+  CGUIWindowPVRGuideBase* m_pGuideWindow{nullptr};
+  CEvent m_ready{true};
+  CEvent m_done{false};
 };
 } // namespace PVR

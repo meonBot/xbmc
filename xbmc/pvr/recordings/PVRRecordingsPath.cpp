@@ -105,7 +105,7 @@ CPVRRecordingsPath::CPVRRecordingsPath(bool bDeleted,
   strTitleN = CURL::Encode(strTitleN);
 
   std::string strSeasonEpisodeN;
-  if ((iSeason > -1 && iEpisode > -1 && (iSeason > 0 || iEpisode > 0)))
+  if (iSeason > -1 && iEpisode > -1 && (iSeason > 0 || iEpisode > 0))
     strSeasonEpisodeN = StringUtils::Format("s{:02}e{:02}", iSeason, iEpisode);
   if (!strSeasonEpisodeN.empty())
     strSeasonEpisodeN = StringUtils::Format(" {}", strSeasonEpisodeN);
@@ -181,17 +181,17 @@ std::string CPVRRecordingsPath::GetUnescapedSubDirectoryPath(const std::string& 
   return strReturn;
 }
 
-const std::string CPVRRecordingsPath::GetTitle() const
+std::string CPVRRecordingsPath::GetTitle() const
 {
   if (m_bValid)
   {
     CRegExp reg(true);
     if (reg.RegComp("pvr://recordings/(.*/)*(.*), TV( \\(.*\\))?, "
                     "(19[0-9][0-9]|20[0-9][0-9])[0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]"
-                    ", (.*).pvr"))
+                    ", (.*).pvr") &&
+        reg.RegFind(m_path.c_str()) >= 0)
     {
-      if (reg.RegFind(m_path.c_str()) >= 0)
-        return reg.GetMatch(2);
+      return reg.GetMatch(2);
     }
   }
   return "";

@@ -15,9 +15,9 @@
 #include "threads/Event.h"
 
 #include <atomic>
-#include <functional>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -49,6 +49,26 @@ class CPVRStreamProperties;
 class CPVRTimerInfoTag;
 class CPVRTimerType;
 class CPVRTimersContainer;
+
+/*!
+ * @brief Holds generic data about a backend (number of channels etc.)
+ */
+struct SBackendProperties
+{
+  std::string clientname;
+  std::string instancename;
+  std::string name;
+  std::string version;
+  std::string host;
+  int numTimers{0};
+  int numRecordings{0};
+  int numDeletedRecordings{0};
+  int numProviders{0};
+  int numChannelGroups{0};
+  int numChannels{0};
+  uint64_t diskUsed{0};
+  uint64_t diskTotal{0};
+};
 
 /*!
  * Interface from Kodi to a PVR add-on.
@@ -204,6 +224,12 @@ public:
   PVR_ERROR GetDriveSpace(uint64_t& iTotal, uint64_t& iUsed) const;
 
   /*!
+   * @brief Returns backend properties about this client
+   * @return the properties
+   */
+  SBackendProperties GetBackendProperties() const;
+
+  /*!
    * @brief Start a channel scan on the server.
    * @return PVR_ERROR_NO_ERROR if the channel scan has been started successfully.
    */
@@ -336,7 +362,7 @@ public:
    * @return PVR_ERROR_NO_ERROR if the list has been fetched successfully.
    */
   PVR_ERROR GetChannelGroupMembers(
-      CPVRChannelGroup* group,
+      const CPVRChannelGroup& group,
       std::vector<std::shared_ptr<CPVRChannelGroupMember>>& groupMembers) const;
 
   //@}
@@ -884,12 +910,20 @@ private:
   /*!
    * @brief Write the given addon properties to the given properties container.
    * @param properties Pointer to an array of addon properties pointers.
-   * @param iPropertyCount The number of properties contained in the addon properties array.
    * @param props The container the addon properties shall be written to.
    */
-  static void WriteStreamProperties(PVR_NAMED_VALUE** properties,
-                                    unsigned int iPropertyCount,
+  static void WriteStreamProperties(std::span<PVR_NAMED_VALUE*> properties,
                                     CPVRStreamProperties& props);
+
+  using AddonInstance = AddonInstance_PVR;
+
+  /*!
+   * @brief Get the timer typed for the given addon.
+   * @param timerTypes [out] the timer types.
+   * @return PVR_ERROR_NO_ERROR on success, any other PVR_ERROR_* value otherwise.
+   */
+  PVR_ERROR GetTimerTypes(const AddonInstance* addon,
+                          std::vector<std::shared_ptr<CPVRTimerType>>& timerTypes);
 
   /*!
    * @brief Whether a channel can be played by this add-on
@@ -911,9 +945,9 @@ private:
    * @param bCheckReadyToUse If true, this method will check whether this instance is ready for use and return PVR_ERROR_SERVER_ERROR if it is not.
    * @return PVR_ERROR_NO_ERROR on success, any other PVR_ERROR_* value otherwise.
    */
-  typedef AddonInstance_PVR AddonInstance;
+  template<typename F>
   PVR_ERROR DoAddonCall(const char* strFunctionName,
-                        const std::function<PVR_ERROR(const AddonInstance*)>& function,
+                        F function,
                         bool bIsImplemented = true,
                         bool bCheckReadyToUse = true) const;
 
@@ -924,9 +958,10 @@ private:
    * @param function The function to wrap. It must take one parameter of type CPVRClient*.
    * @param bForceCall If true, make the call, ignoring client's state.
    */
+  template<typename F>
   static void HandleAddonCallback(const char* strFunctionName,
                                   void* kodiInstance,
-                                  const std::function<void(CPVRClient* client)>& function,
+                                  F function,
                                   bool bForceCall = false);
 
   /*!

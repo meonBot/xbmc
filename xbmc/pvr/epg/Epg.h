@@ -228,7 +228,7 @@ namespace PVR
      * @brief Get the start and end time of the last not yet committed entry in this table.
      * @return The times; first: start time, second: end time.
      */
-    std::pair<CDateTime, CDateTime> GetFirstAndLastUncommitedEPGDate() const;
+    std::pair<CDateTime, CDateTime> GetFirstAndLastUncommittedEPGDate() const;
 
     /*!
      * @brief Notify observers when the currently active tag changed.
@@ -281,7 +281,7 @@ namespace PVR
      * @param database The EPG database
      * @return number of cleaned up images.
      */
-    int CleanupCachedImages(const std::shared_ptr<const CPVREpgDatabase>& database);
+    int CleanupCachedImages(const std::shared_ptr<const CPVREpgDatabase>& database) const;
 
   private:
     CPVREpg() = delete;
